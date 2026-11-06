@@ -14,3 +14,9 @@ build/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Python
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/

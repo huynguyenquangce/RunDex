@@ -1,0 +1,130 @@
+# SAMPLE DATA for development and demos. NOT verified: dates, statuses and
+# distances come from public pages and secondary listings seen on 2026-11-06
+# (see docs/DATA-SOURCES.md). Fees, elevation and cut-offs are unknown and left
+# empty on purpose. last_verified_at stays null until a person checks the
+# organizer's own page.
+events:
+  - slug: vietnam-trail-marathon-2027
+    name: Vietnam Trail Marathon 2027
+    organizer: Topas Travel (Vietnam Trail Series)
+    event_type: trail
+    start_date: 2027-01-16
+    province: Sơn La
+    venue: Mộc Châu
+    status: registration_open
+    registration_url: https://vietnamtrailseries.com/trail-marathon/vtm-book-now/
+    source_name: vietnamtrailseries.com
+    source_url: https://vietnamtrailseries.com/trail-marathon/
+    distances:
+      - { label: 70K, distance_km: 70 }
+      - { label: 50K, distance_km: 50 }
+      - { label: 21K, distance_km: 21 }
+      - { label: 10K, distance_km: 10 }
+      - { label: 5K, distance_km: 5 }
+
+  - slug: hcmc-marathon-2027
+    name: HCMC Marathon 2027
+    organizer: Pulse Active
+    event_type: road
+    start_date: 2027-01-17
+    province: TP. Hồ Chí Minh
+    venue: Công viên 30/4, Lê Duẩn
+    status: scheduled
+    registration_url: https://hcmcmarathon.com/vi/dang-ky/
+    source_name: hcmcmarathon.com
+    source_url: https://hcmcmarathon.com/
+    distances:
+      - { label: 42K, distance_km: 42.2 }
+      - { label: 21K, distance_km: 21.1 }
+      - { label: 10K, distance_km: 10 }
+
+  - slug: manulife-danang-international-marathon-2027
+    name: Manulife Danang International Marathon 2027
+    organizer: Pulse Active
+    event_type: road
+    start_date: 2027-03-21
+    province: Đà Nẵng
+    status: scheduled
+    registration_url: https://rundanang.com/dang-ky/
+    source_name: rundanang.com
+    source_url: https://rundanang.com/
+    distances:
+      - { label: 42K, distance_km: 42.2 }
+      - { label: 21K, distance_km: 21.1 }
+      - { label: 10K, distance_km: 10 }
+
+  - slug: vietnam-highlands-trail-by-utmb-2027
+    name: Vietnam Highlands Trail by UTMB 2027
+    event_type: trail
+    start_date: 2027-01-08
+    end_date: 2027-01-10
+    province: Lâm Đồng
+    venue: Đà Lạt
+    status: scheduled
+    source_name: linh.academy (secondary listing)
+    source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+    distances:
+      - { label: 100K, distance_km: 100 }
+      - { label: 50K, distance_km: 50 }
+
+  - slug: dalat-ultra-trail-2027
+    name: Dalat Ultra Trail 2027
+    event_type: trail
+    start_date: 2027-03-19
+    end_date: 2027-03-21
+    province: Lâm Đồng
+    venue: Đà Lạt
+    status: scheduled
+    source_name: thegioichaybo.vn (secondary listing)
+    source_url: https://www.thegioichaybo.vn/blogs/giai-chay/tong-hop-giai-chay-bo-2027
+
+  - slug: mang-den-ultra-trail-2027
+    name: Măng Đen Ultra Trail 2027
+    event_type: trail
+    start_date: 2027-01-15
+    end_date: 2027-01-17
+    province: Quảng Ngãi
+    venue: Măng Đen
+    status: scheduled
+    source_name: thegioichaybo.vn (secondary listing)
+    source_url: https://www.thegioichaybo.vn/blogs/giai-chay/tong-hop-giai-chay-bo-2027
+
+  - slug: bac-ninh-legacy-marathon-2027
+    name: Bắc Ninh Legacy Marathon 2027
+    event_type: road
+    start_date: 2027-01-10
+    province: Bắc Ninh
+    status: scheduled
+    source_name: thegioichaybo.vn (secondary listing)
+    source_url: https://www.thegioichaybo.vn/blogs/giai-chay/tong-hop-giai-chay-bo-2027
+
+  - slug: tet-run-mien-nam-2027
+    name: Tết Run Miền Nam 2027
+    event_type: road
+    start_date: 2027-01-24
+    province: TP. Hồ Chí Minh
+    status: scheduled
+    source_name: thegioichaybo.vn (secondary listing)
+    source_url: https://www.thegioichaybo.vn/blogs/giai-chay/tong-hop-giai-chay-bo-2027
+
+  - slug: the-explorer-trail-2027
+    name: The Explorer Trail 2027
+    event_type: trail
+    start_date: 2027-04-17
+    province: TP. Hồ Chí Minh
+    venue: Núi Dinh
+    status: scheduled
+    source_name: thegioichaybo.vn (secondary listing)
+    source_url: https://www.thegioichaybo.vn/blogs/giai-chay/tong-hop-giai-chay-bo-2027
+
+  - slug: vietnam-ultra-marathon-mai-chau-2026
+    name: Vietnam Ultra Marathon Mai Châu 2026
+    event_type: trail
+    start_date: 2026-03-14
+    province: Hòa Bình
+    venue: Mai Châu
+    status: cancelled
+    source_name: ITRA (race listing marks the 25 km race cancelled)
+    source_url: https://itra.run/Races/RaceDetails/Vietnam.Ultra.Marathon.25km/2026/104915
+    distances:
+      - { label: 25K, distance_km: 25 }

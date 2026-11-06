@@ -10,6 +10,6 @@ src/
   .env.example        copy to src/.env (never commit real values)
 ```
 
-Status: step 1 (scaffold). Backend exposes `GET /health`; the mobile app is the Expo blank TypeScript template. Event schema, list/detail API and screens follow docs/IMPLEMENTATION-PLAN.md.
+Status: step 2 done. Backend has the `events`/`distances` schema (Alembic), a seed loader with 10 sample events (unverified), and `GET /health`; the mobile app is the Expo blank TypeScript template. List/detail API and screens follow docs/IMPLEMENTATION-PLAN.md.
 
 Conventions: no secrets in code; configuration through environment variables; backend lint/format with ruff, tests with pytest; mobile typecheck with `npm run typecheck`.

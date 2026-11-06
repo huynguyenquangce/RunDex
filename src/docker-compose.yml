@@ -21,6 +21,8 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-rundex}:${POSTGRES_PASSWORD:-rundex_dev}@db:5432/${POSTGRES_DB:-rundex}
+    # Dev convenience: apply migrations and load sample data (idempotent), then serve.
+    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
       - "8000:8000"
     depends_on:

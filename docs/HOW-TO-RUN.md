@@ -26,6 +26,12 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload
 ```
 
+Docker Compose applies migrations and loads the sample data on start (idempotent). Manual commands (with `DATABASE_URL` set, run in `src/backend`):
+```bash
+alembic upgrade head          # create/upgrade the schema
+python -m app.seed            # load seed/events.sample.yaml (SAMPLE, unverified data)
+```
+
 ## Mobile app
 ```bash
 cd src/mobile
