@@ -62,4 +62,6 @@ Out of scope for now (ADR to write if needed). Options: a PaaS plus a cloud Post
 3. Review through the CLI for now.
 
 ## Progress
+- S2 done: fetcher (robots.txt, 2 s per host, ETag, hash dedupe), sitemap discovery, `python -m app.ingest fetch`; real run on 17 sources queued 32 pages in `data/inbox`.
+- S3 + S4 done (code and tests): `extract.py` (evidence check), `normalize.py`, `validate.py`, `match.py`, `changes.py` (diff + tier policy), `apply.py`, `pipeline.py`; CLI `apply`, `review`, `approve`, `reject`. Next: run the extractor agent on the inbox and `apply`.
 - S1 done: migration 0002 (`sources`, `raw_documents`, `change_proposals`, `audit_log`), models, registry loader, `python -m app.ingest sources sync|list`, tests.
