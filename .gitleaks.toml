@@ -1,0 +1,10 @@
+title = "RunDex gitleaks config"
+
+[extend]
+useDefault = true
+
+# Only the dev/CI placeholder database password is allowlisted. These values
+# appear in docker-compose, .env.example and CI and are not real secrets.
+[allowlist]
+description = "Placeholder dev/CI database credentials"
+regexes = ['''rundex_(dev|ci)''']

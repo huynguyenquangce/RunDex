@@ -2,7 +2,7 @@
 
 Status: accepted by the owner, 2026-11-06 (see ADR 0006). Coding starts 2026-11-13 (challenge window). Figma work for additional screens is postponed. Items marked (confirm) are proposals awaiting the owner's decision.
 
-Progress: step 1 (scaffold, CI skeleton) done on 2026-11-06; backend lint/tests not yet run locally (no pip/docker access), they run in GitHub Actions.
+Progress: step 1 (scaffold, CI skeleton) done and pushed on 2026-11-06. First CI run: backend and mobile green; Security (gitleaks) red, caused by placeholder DB passwords, handled with .gitleaks.toml (to be confirmed by the next run). Backend lint/tests run only in GitHub Actions (no pip/docker on the dev machine).
 
 ## Goal
 A working mobile app (iOS + Android, Expo) backed by a real API and PostgreSQL that shows the event list with search and filters, and an event detail screen with a link to the organizer's registration page. Verified by tests and GitHub Actions. Ingestion (ADR 0003) comes after.
