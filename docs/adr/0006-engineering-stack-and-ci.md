@@ -21,6 +21,7 @@ The screens (Event List, Filters, Event Detail) are designed. Before coding star
 ## Consequences
 - One clone runs everything; CI checks both sides and the contract between them.
 - The plan in docs/IMPLEMENTATION-PLAN.md is the working plan; libraries can still change if they prove a poor fit (record a new ADR).
+- Dependabot ignores the Expo-managed packages (expo, react, react-native, typescript, jest and friends): they must change together with the SDK, and single bumps fail `expo-doctor` in CI. Upgrade them with `npx expo install expo@latest` then `npx expo install --fix`.
 - The GitHub repo is outside the KMS Shared Drive; the submission folder must still contain all code, workflows and docs.
 
 ## AI involvement

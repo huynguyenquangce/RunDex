@@ -3,9 +3,29 @@ updates:
   - package-ecosystem: "pip"
     directory: "/src/backend"
     schedule: { interval: "weekly" }
+
   - package-ecosystem: "npm"
     directory: "/src/mobile"
     schedule: { interval: "weekly" }
+    # The React Native toolchain must move together with the Expo SDK (see `npx expo install --check`).
+    # Bumping these one by one breaks expo-doctor (e.g. react 19.3.1 or typescript 7 on SDK 58).
+    # Upgrade them by changing the SDK: `npx expo install expo@latest && npx expo install --fix`.
+    ignore:
+      - dependency-name: "expo"
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-*"
+      - dependency-name: "@react-native-*"
+      - dependency-name: "@types/react"
+      - dependency-name: "typescript"
+      - dependency-name: "jest"
+      - dependency-name: "jest-expo"
+      - dependency-name: "@types/jest"
+      - dependency-name: "@testing-library/react-native"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule: { interval: "weekly" }
