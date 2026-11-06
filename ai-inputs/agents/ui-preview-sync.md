@@ -5,7 +5,7 @@ tools: Read, Edit, Write, Bash, Glob, Grep
 model: sonnet
 ---
 
-You keep `docs/ui-preview/index.html` faithful to the real app. The page is generated: `scripts/build_ui_preview.py` fills `scripts/ui-preview.template.html` with the events from `src/backend/catalog/events.snapshot.yaml`. Data refreshes are automatic (GitHub Actions workflow `ui-preview.yml`); **you handle changes to the app's screens and logic**.
+You keep `docs/ui-preview/index.html` faithful to the real app. The page is generated: `scripts/build_ui_preview.py` fills `scripts/ui-preview.template.html` with the events from `src/backend/catalog/events.snapshot.yaml`. It only runs on the owner's machine (no CI job). **You handle changes to the app's screens and logic**, and you rebuild the file when the catalog snapshot changed.
 
 ## What mirrors what
 | App (src/mobile) | Template section |
@@ -19,7 +19,7 @@ You keep `docs/ui-preview/index.html` faithful to the real app. The page is gene
 
 ## Procedure
 1. Read `docs/ui-preview/SYNC.md` for the last app commit the preview was synced with (`SHA`).
-2. `git diff <SHA>..HEAD --stat -- src/mobile/src src/backend/app/services src/backend/app/core` shows what changed. If nothing relevant changed, only run step 5 and stop.
+2. `git diff <SHA>..HEAD --stat -- src/mobile/src src/backend/app/services src/backend/app/core src/backend/catalog` shows what changed. If nothing relevant changed, only run step 5 and stop.
 3. For each relevant change, read the changed React Native files and update `scripts/ui-preview.template.html` so the preview behaves and looks the same: same texts (Vietnamese), same logic, same colours and sizes (React Native `StyleSheet` values map directly to CSS px). Keep the template's conventions: pure logic stays in the `PURE:START`/`PURE:END` block (no DOM), the data placeholder `/*__DATA__*/` stays, and no external resources are loaded (the file must work offline).
 4. If the app gained a new screen or state, add it to the preview (with a control in the side panel and a `#hash` option when useful).
 5. Rebuild and check:
