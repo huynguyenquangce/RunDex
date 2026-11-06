@@ -62,7 +62,7 @@ Repository: https://github.com/huynguyenquangce/RunDex. See `docs/IMPLEMENTATION
 ## Plan (4h/week, 13–30 Nov) and cut-line
 | Week | Goal |
 |---|---|
-| 1 (13–19/11) | PostgreSQL schema + migrations, seed ~40 events, API (list/detail/search with unaccent), mobile app skeleton with list and detail screens, tests, Docker Compose |
+| 1 (13–19/11) | PostgreSQL schema + migrations, fixture data for tests only (events come from ingestion), API (list/detail/search with unaccent), mobile app skeleton with list and detail screens, tests, Docker Compose |
 | 2 (20–26/11) | Ingestion core: source registry, fetch, one deterministic adapter + one AI adapter (with replay), validation, diff, change proposals, trust tiers, audit log |
 | 3 (27–30/11) | Review queue (minimal admin), scheduler, link checker, CI, mobile UX/accessibility polish, docs/ADRs, reviewer-agent pass |
 

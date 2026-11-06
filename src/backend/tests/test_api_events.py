@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from datetime import date
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -7,7 +8,9 @@ from sqlalchemy.orm import Session
 
 from app.deps import get_today
 from app.main import app
-from app.seed import DEFAULT_SEED_PATH, load_seed_file, seed_events
+from app.seed import load_seed_file, seed_events
+
+FIXTURE_PATH = Path(__file__).parent / "fixtures" / "events.fixture.yaml"
 
 TODAY = date(2026, 11, 6)
 UPCOMING = [
@@ -25,7 +28,7 @@ UPCOMING = [
 
 @pytest.fixture
 def client(db: Session) -> Iterator[TestClient]:
-    seed_events(db, load_seed_file(DEFAULT_SEED_PATH))
+    seed_events(db, load_seed_file(FIXTURE_PATH))
     app.dependency_overrides[get_today] = lambda: TODAY
     yield TestClient(app)
     app.dependency_overrides.clear()

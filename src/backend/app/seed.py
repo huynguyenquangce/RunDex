@@ -1,6 +1,8 @@
-"""Load sample events from YAML into the database (idempotent upsert by slug).
+"""Load events from a YAML file into the database (idempotent upsert by slug).
 
-Usage: python -m app.seed [path/to/events.yaml]
+Usage: python -m app.seed path/to/events.yaml
+The product does not ship seed data: events come from the ingestion pipeline.
+This loader exists for test fixtures and local development.
 """
 
 import sys
@@ -15,8 +17,6 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.models import Distance, Event
-
-DEFAULT_SEED_PATH = Path(__file__).resolve().parent.parent / "seed" / "events.sample.yaml"
 
 
 class DistanceSeed(BaseModel):
@@ -62,7 +62,7 @@ class EventSeed(BaseModel):
         return self
 
 
-def load_seed_file(path: Path = DEFAULT_SEED_PATH) -> list[EventSeed]:
+def load_seed_file(path: Path) -> list[EventSeed]:
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     events = [EventSeed.model_validate(item) for item in raw.get("events", [])]
     slugs = [e.slug for e in events]
@@ -115,7 +115,10 @@ def seed_events(session: Session, events: list[EventSeed]) -> tuple[int, int]:
 
 
 def main(argv: list[str]) -> int:
-    path = Path(argv[1]) if len(argv) > 1 else DEFAULT_SEED_PATH
+    if len(argv) < 2:
+        print("usage: python -m app.seed path/to/events.yaml")
+        return 2
+    path = Path(argv[1])
     events = load_seed_file(path)
     with SessionLocal() as session:
         created, updated = seed_events(session, events)

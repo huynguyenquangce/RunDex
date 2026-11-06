@@ -26,10 +26,10 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload
 ```
 
-Docker Compose applies migrations and loads the sample data on start (idempotent). Manual commands (with `DATABASE_URL` set, run in `src/backend`):
+Docker Compose applies the migrations on start. The database starts **empty**: events come from the ingestion pipeline (see docs/INGESTION-PLAN.md), the product ships no seed data. Manual commands (with `DATABASE_URL` set, run in `src/backend`):
 ```bash
 alembic upgrade head          # create/upgrade the schema
-python -m app.seed            # load seed/events.sample.yaml (SAMPLE, unverified data)
+python -m app.seed tests/fixtures/events.fixture.yaml   # optional: load unverified TEST fixture data to look at screens locally
 ```
 
 ## API (step 3)
@@ -67,8 +67,13 @@ Notes
 - Some company Wi-Fi networks block devices from reaching each other. If the QR code does not connect, use a phone hotspot or a home network. `npx expo start --tunnel` helps Metro only; the API must still be reachable.
 
 ## Test and check
+Backend tests truncate tables, so they only run against a database named `*_test` (otherwise they are skipped with a message). Create one next to the dev database and point `DATABASE_URL` at it:
 ```bash
-cd src/backend && pytest && ruff check . && ruff format --check .
+docker compose exec db createdb -U rundex rundex_test
+DATABASE_URL=postgresql+psycopg://rundex:rundex_dev@localhost:5432/rundex_test REQUIRE_DB=1 pytest
+```
+```bash
+cd src/backend && pytest && ruff check . && ruff format --check .   # DB tests need a database whose name ends in _test
 cd src/mobile && npm run typecheck && npm test
 cd src/mobile && npm run api:types    # regenerate src/api/schema.d.ts from src/openapi/openapi.json
 ```

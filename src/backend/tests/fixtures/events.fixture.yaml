@@ -1,8 +1,9 @@
-# SAMPLE DATA for development and demos. NOT verified: dates, statuses and
-# distances come from public pages and secondary listings seen on 2026-11-06
-# (see docs/DATA-SOURCES.md). Fees, elevation and cut-offs are unknown and left
-# empty on purpose. last_verified_at stays null until a person checks the
-# organizer's own page.
+# TEST FIXTURE, not product data. Used only by the backend tests. Dates,
+# statuses and distances were taken from public pages and secondary listings
+# seen on 2026-11-06 (see docs/DATA-SOURCES.md) and are NOT verified. The
+# running app gets its events from the ingestion pipeline, not from this file.
+# To look at it in a local database while developing screens:
+#   python -m app.seed tests/fixtures/events.fixture.yaml
 events:
   - slug: vietnam-trail-marathon-2027
     name: Vietnam Trail Marathon 2027

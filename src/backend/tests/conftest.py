@@ -14,9 +14,24 @@ from app.db import SessionLocal, engine
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 
+def _refuse_unsafe_database() -> None:
+    """The db fixture TRUNCATEs tables: only ever run against a database meant for tests."""
+    name = engine.url.database or ""
+    if name.endswith("_test") or os.getenv("ALLOW_DB_RESET"):
+        return
+    message = (
+        f"refusing to reset database '{name}': tests truncate tables. Point DATABASE_URL at a "
+        "database whose name ends in _test (or set ALLOW_DB_RESET=1 if you really mean it)."
+    )
+    if os.getenv("REQUIRE_DB"):
+        pytest.fail(message)
+    pytest.skip(message)
+
+
 @pytest.fixture(scope="session")
 def migrated_db() -> None:
-    """Apply migrations to the configured database (skip locally if unreachable)."""
+    """Apply migrations to the test database (skip locally if unreachable or not a test DB)."""
+    _refuse_unsafe_database()
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))

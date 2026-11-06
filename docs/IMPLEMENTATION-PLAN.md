@@ -16,7 +16,7 @@ src/
   docker-compose.yml      db + api (+ later worker)
   backend/                FastAPI app
     app/ (api/, models/, schemas/, services/, core/)
-    alembic/  tests/  seed/events.sample.yaml  pyproject.toml  Dockerfile
+    alembic/  tests/ (fixtures/events.fixture.yaml)  pyproject.toml  Dockerfile
   mobile/                 Expo app (TypeScript strict)
     app/ (expo-router: index, event/[slug])
     src/ (api/, components/, features/, theme/, i18n/)  __tests__/
@@ -33,7 +33,7 @@ docs/  ai-inputs/  scripts/
   - `GET /health`.
 - Derived fields computed server-side: `closing_soon` (deadline within 7 days), `days_left`, `status`.
 - Errors: consistent problem-style JSON; 404 for unknown slug; 422 for bad filters.
-- Seed: `seed/events.sample.yaml` (~40 events, SAMPLE until verified per docs/DATA-SOURCES.md) loaded by `python -m app.seed`.
+- No seed data in the product (owner decision 2026-11-06): events arrive through the ingestion pipeline (docs/INGESTION-PLAN.md). `tests/fixtures/events.fixture.yaml` holds 10 unverified events used only by tests; `python -m app.seed <file>` can load them locally.
 - Config: env vars only (`DATABASE_URL`), `.env.example`, no secrets in repo.
 
 ## Mobile design
@@ -69,7 +69,7 @@ Note (confirm): GitHub hosting must be allowed for this work under KMS policy; d
 | # | Task | Output | h |
 |---|---|---|---|
 | 1 | Scaffold repo, Compose, CI skeleton, `.env.example` | green CI on empty app | 0.75 |
-| 2 | Schema + Alembic + seed | `make seed` loads ~40 sample events | 0.75 |
+| 2 | Schema + Alembic + fixture loader | migrations apply; tests load fixture events | 0.75 |
 | 3 | List/detail API + search + tests | OpenAPI contract committed | 1.25 |
 | 4 | Mobile scaffold, theme, API client, query cache | app boots and calls API | 0.75 |
 | 5 | Event List screen (search, chips, cards, infinite scroll) | matches Figma | 1.0 |
@@ -80,7 +80,7 @@ Note (confirm): GitHub hosting must be allowed for this work under KMS policy; d
 Total about 7.25 h, roughly week 1 plus half of week 2. This leaves about 4.5 h for ingestion (ADR 0003) and polish, which is tight.
 
 ## Milestones and definition of done
-- M1 (end of week 1): tasks 1–4 done; API returns seeded events; app shows a raw list; CI green.
+- M1 (end of week 1): tasks 1–4 done; API serves events from the database (fixtures in tests, ingestion in the product); app shows a raw list; CI green.
 - M2 (early week 2): tasks 5–8 done; all three screens and states work on both platforms.
 - M3: docs and ADRs updated, `scripts/check-submission.sh` passes, reviewer agent run.
 Done = tests pass in CI, runs with documented commands from a clean clone, no secrets, docs match code.

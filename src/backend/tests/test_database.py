@@ -1,4 +1,5 @@
 from datetime import date
+from pathlib import Path
 
 import pytest
 from sqlalchemy import inspect, select, text
@@ -6,7 +7,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import Distance, Event
-from app.seed import DEFAULT_SEED_PATH, load_seed_file, seed_events
+from app.seed import load_seed_file, seed_events
+
+FIXTURE_PATH = Path(__file__).parent / "fixtures" / "events.fixture.yaml"
 
 
 def _event(**overrides: object) -> Event:
@@ -69,7 +72,7 @@ def test_deleting_event_cascades_to_distances(db: Session) -> None:
 
 
 def test_seed_is_idempotent(db: Session) -> None:
-    events = load_seed_file(DEFAULT_SEED_PATH)
+    events = load_seed_file(FIXTURE_PATH)
     created, updated = seed_events(db, events)
     assert (created, updated) == (len(events), 0)
     count = db.scalar(text("SELECT count(*) FROM events"))

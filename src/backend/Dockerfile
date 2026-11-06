@@ -6,7 +6,6 @@ WORKDIR /srv
 COPY pyproject.toml alembic.ini ./
 COPY app ./app
 COPY alembic ./alembic
-COPY seed ./seed
 RUN pip install --no-cache-dir .
 
 EXPOSE 8000
