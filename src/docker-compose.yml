@@ -1,0 +1,31 @@
+# Local development stack: PostgreSQL + API.
+# Dev-only defaults; override through src/.env (never commit real secrets).
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-rundex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rundex_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-rundex}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rundex} -d ${POSTGRES_DB:-rundex}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-rundex}:${POSTGRES_PASSWORD:-rundex_dev}@db:5432/${POSTGRES_DB:-rundex}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
