@@ -139,6 +139,7 @@ npx expo start --clear
 - **Danh sách:** the title "Giải chạy" (iPhone) or "RunDex" (Android), a search box, filter chips, and event cards showing date, type, status, place and distances.
 - Type `da lat` in the search box: only Đà Lạt events remain (no need for accents).
 - Tap chips such as **Trail** or **42K**; tap **Tất cả** to clear.
+- Tap the **filter button** (next to the search box): choose type, distances, time range (this month / 3 / 6 months), region and "only open for registration". The green button shows how many events match ("Xem 12 giải"); tap it to apply, or **Xóa bộ lọc** to reset. The button on the list shows how many filter groups are active.
 - Pull down to refresh. Scroll to the end to load more.
 - Tap a card: **Chi tiết** with date and weekday, place and "Xem bản đồ", organizer, registration deadline, each distance with start time, fee, elevation and cut-off, the data source and when it was last checked.
 - **Đăng ký trên trang ban tổ chức** opens the organizer's own page in the browser (only shown when the event has a link).

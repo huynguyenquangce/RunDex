@@ -60,6 +60,20 @@ export const eventsQuery = (filters: EventFilters) =>
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
   });
 
+/** How many events match the filters (one tiny request); feeds the filter sheet button. */
+export const countQuery = (filters: EventFilters) =>
+  queryOptions({
+    queryKey: ['events-count', filters] as const,
+    queryFn: async ({ signal }) => {
+      const { data, response } = await api.GET('/v1/events', {
+        params: { query: toQueryParams(filters, undefined, 1) },
+        signal,
+      });
+      if (!data) throw new ApiError(response.status, 'Could not count events');
+      return data.total;
+    },
+  });
+
 export const eventQuery = (slug: string) =>
   queryOptions({
     queryKey: ['event', slug] as const,

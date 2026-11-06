@@ -1,16 +1,18 @@
 import { useNetInfo } from '@react-native-community/netinfo';
-import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { type EventFilters, eventsQuery } from '@/api/events';
+import { type EventFilters, countQuery, eventsQuery } from '@/api/events';
 import { EventCard } from '@/components/EventCard';
+import { FilterButton } from '@/components/FilterButton';
 import { FilterChip } from '@/components/FilterChip';
 import { Message, OfflineBanner, SkeletonCards } from '@/components/ListStates';
 import { SearchField } from '@/components/SearchField';
-import { CHIPS, isChipActive, toggleChip } from '@/features/events/filters';
+import { FilterSheet } from '@/features/events/FilterSheet';
+import { CHIPS, activeFilterCount, hasChipFilters, isChipActive, toggleChip } from '@/features/events/filters';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { colors, fontSize, spacing } from '@/theme/tokens';
 
@@ -21,12 +23,15 @@ export default function EventListScreen() {
   const [text, setText] = useState('');
   const q = useDebouncedValue(text, 300);
   const [chipFilters, setChipFilters] = useState<EventFilters>({});
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [draft, setDraft] = useState<EventFilters>({});
   const filters = useMemo<EventFilters>(() => ({ ...chipFilters, q }), [chipFilters, q]);
   const today = useMemo(() => new Date(), []);
 
   const query = useInfiniteQuery({ ...eventsQuery(filters), placeholderData: keepPreviousData });
   const items = query.data?.pages.flatMap((page) => page.items) ?? [];
-  const hasFilters = Boolean(q.trim()) || Object.values(chipFilters).some(Boolean);
+  const hasFilters = Boolean(q.trim()) || hasChipFilters(chipFilters);
+  const draftCount = useQuery({ ...countQuery({ ...draft, q }), enabled: sheetOpen, placeholderData: keepPreviousData });
   const offline = netInfo.isConnected === false;
 
   const clearAll = () => {
@@ -51,7 +56,16 @@ export default function EventListScreen() {
         </View>
       )}
       <View style={styles.searchRow}>
-        <SearchField value={text} onChangeText={setText} />
+        <View style={styles.flex}>
+          <SearchField value={text} onChangeText={setText} />
+        </View>
+        <FilterButton
+          count={activeFilterCount(chipFilters)}
+          onPress={() => {
+            setDraft(chipFilters);
+            setSheetOpen(true);
+          }}
+        />
       </View>
       <ScrollView
         horizontal
@@ -101,6 +115,19 @@ export default function EventListScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       {offline ? <OfflineBanner /> : null}
+      <FilterSheet
+        visible={sheetOpen}
+        draft={draft}
+        total={draftCount.data}
+        today={today}
+        onChange={setDraft}
+        onClear={() => setDraft({})}
+        onClose={() => setSheetOpen(false)}
+        onApply={() => {
+          setChipFilters(draft);
+          setSheetOpen(false);
+        }}
+      />
       <FlatList
         data={items}
         keyExtractor={(item) => item.slug}
@@ -138,7 +165,15 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.muted, fontSize: fontSize.body },
   appBar: { height: 64, justifyContent: 'center', paddingHorizontal: spacing.lg },
   titleAndroid: { color: colors.ink, fontSize: fontSize.title + 2, fontWeight: '500' },
-  searchRow: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.md },
+  flex: { flex: 1 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.md,
+  },
   chips: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   listHeader: {
     flexDirection: 'row',
