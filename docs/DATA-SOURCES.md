@@ -11,9 +11,9 @@ Research date: 2026-11-06. Method: web searches (Vietnamese and English) plus a 
 
 | Source | Kind | Role | robots.txt (checked) | Status |
 |---|---|---|---|---|
-| vietnamtrailseries.com (Topas; VTM Moc Chau) | Organizer | T1/T2 official trail events | Allows all except `/wp-admin/`; sitemap at `/sitemap_index.xml` | Good first source |
-| hcmcmarathon.com | Organizer | T2 official | not fetched | Check; page showed "updates coming" |
-| rundanang.com (Danang International Marathon) | Organizer | T2 official | not fetched | Check |
+| vietnamtrailseries.com (Topas; VTM Moc Chau) | Organizer | T1/T2 official trail events | Allows all except `/wp-admin/`; sitemap at `/sitemap_index.xml` | robots OK, but Service Agreement restricts use: authorization from Topas Travel needed before any automated use |
+| hcmcmarathon.com | Organizer | T2 official | No paths blocked; sitemap `/sitemap_index.xml` | No terms found; ask permission; page showed "updates coming" |
+| rundanang.com (Danang International Marathon) | Organizer | T2 official | Blocks only `/wp-admin/`; sitemap `/wp-sitemap.xml` | No retrievable terms; ask permission |
 | irace.vn event pages (e.g. Vietnam Trail Marathon) | Ticketing platform | T2 for events it sells | Blocks ~90 named bots and some `/go` paths; generic agents only barred from one JSON file | ToS must be checked; use respectfully |
 | asiatrailmaster.com, ahotu.com, marathonscout.com, finishers.com | International listings | T3 discovery | ahotu returned 403; others not fetched | Likely restrictive; low priority |
 | itra.run | Trail race registry | T3 for UTMB/ITRA events | robots not retrievable (404/empty) | Check ToS; low priority |
@@ -29,6 +29,13 @@ Method: fetched each site's homepage and looked for legal pages. The text of lin
 | hcmcmarathon.com (Pulse Active) | No terms/privacy found. Footer: copyright Pulse Active. Date shown: 17 Jan 2027, start/finish 30/4 Park, Le Duan. Fees and deadline not on homepage. | https://hcmcmarathon.com/register/ (EN), https://hcmcmarathon.com/vi/dang-ky/ (VI) |
 | rundanang.com (Pulse Active) | Footer label "Term Condition / Privacy Policy" with no retrievable link. Copyright Pulse Active. Date only as a countdown. | https://rundanang.com/dang-ky/ |
 | irace.vn | No legal page found on the homepage (FAQ/user manual exist, unread). | n/a (ticketing platform; event pages) |
+
+### Vietnam Trail Series legal pages (read 2026-11-06)
+- Service Agreement (operator: Phu Thinh Ltd. Co / Topas Travel): the site "is protected by copyright law", is "for informational purposes and online registration for races only", "not for any other commercial use", and research, reference and information sharing must be "authorized by Topas Travel and clearly cited".
+- General Trading Conditions and Privacy Policy: no clause on content reuse or automated access (they cover fees/participation and registrants' personal data).
+- Consequence: republishing their event information in RunDex, and any automated collection, should be authorized by Topas Travel and cited. Until then do not enable an automated adapter for this source; seed only a few clearly cited facts, link to the official page, and request permission.
+- The other sites (Pulse Active: hcmcmarathon.com, rundanang.com; irace.vn) show no retrievable terms; that is not permission. Ask first as well.
+- Not legal advice.
 
 Conclusions and policy for RunDex:
 - No source grants permission to reuse content; none forbids it on the homepage either. Linked legal pages must still be read before automating a source.
@@ -48,6 +55,6 @@ Vietnam Highlands Trail by UTMB (Da Lat, 8–10/01/2027); Bac Ninh Legacy Marath
 Each must be verified on the organizer's page before it enters the catalog.
 
 ## Next steps
-1. Read Terms of Service for the first sources (vietnamtrailseries.com, hcmcmarathon.com, rundanang.com, irace.vn).
+1. Send permission requests to organizers (Topas Travel, Pulse Active, others) asking to list their event facts with citation and a link to their registration page; keep replies as evidence. Draft in docs/ORGANIZER-OUTREACH.md.
 2. Choose 3–5 sources for the MVP; record in the source registry and an ADR.
 3. Use the verified list above as seed data (~40–60 events) for week 1.

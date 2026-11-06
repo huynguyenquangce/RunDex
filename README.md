@@ -31,6 +31,7 @@
 │   ├── OVERVIEW.md
 │   ├── DESIGN-DECISIONS.md
 │   ├── DATA-SOURCES.md
+│   ├── ORGANIZER-OUTREACH.md
 │   ├── HOW-TO-RUN.md
 │   ├── IMPLEMENTATION-PLAN.md
 │   └── adr/             # one file per significant decision
