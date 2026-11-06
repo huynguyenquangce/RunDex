@@ -14,10 +14,11 @@
 
 ## Reading order for reviewers
 1. [`docs/OVERVIEW.md`](docs/OVERVIEW.md) — what was built and why
-2. [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) — key decisions and trade-offs
-3. [`docs/HOW-TO-RUN.md`](docs/HOW-TO-RUN.md) — run it in minutes
-4. [`ai-inputs/README.md`](ai-inputs/README.md) — how AI was used
-5. [`REGENERATE.md`](REGENERATE.md) — reproduce the code
+2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — architecture diagrams and tech stack (interactive version: https://claude.ai/artifact/SSqc3zJ4u7GyRyVsGm2YMU)
+3. [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) — key decisions and trade-offs
+4. [`docs/HOW-TO-RUN.md`](docs/HOW-TO-RUN.md) — run it in minutes
+5. [`ai-inputs/README.md`](ai-inputs/README.md) — how AI was used
+6. [`REGENERATE.md`](REGENERATE.md) — reproduce the code
 
 ## Layout
 ```
@@ -33,6 +34,7 @@
 │   ├── DATA-SOURCES.md
 │   ├── ORGANIZER-OUTREACH.md
 │   ├── HOW-TO-RUN.md
+│   ├── ARCHITECTURE.md       # diagrams + tech stack (also as an interactive page)
 │   ├── IMPLEMENTATION-PLAN.md
 │   └── adr/             # one file per significant decision
 ├── ai-inputs/

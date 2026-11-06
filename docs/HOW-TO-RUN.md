@@ -51,8 +51,10 @@ API address: set `EXPO_PUBLIC_API_URL` (Android emulator reaches the host at `ht
 ## Test and check
 ```bash
 cd src/backend && pytest && ruff check . && ruff format --check .
-cd src/mobile && npm run typecheck
+cd src/mobile && npm run typecheck && npm test
+cd src/mobile && npm run api:types    # regenerate src/api/schema.d.ts from src/openapi/openapi.json
 ```
+`api:types` runs `openapi-typescript` through `npx` with its own TypeScript 5, because Expo SDK 58 uses TypeScript 6 and `openapi-typescript` does not support it yet (so it is not a project dependency).
 CI runs the same checks on GitHub Actions (.github/workflows).
 
 ## Troubleshooting

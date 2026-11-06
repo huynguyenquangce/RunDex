@@ -22,6 +22,8 @@ Name: **RunDex** (run + index: a catalog of running events). Availability on app
 Scope is small, engineering is not: schema validation, tests, CI (lint/test/build, scheduled link check), one-command backend run (Docker Compose: PostgreSQL + API + worker), accessible mobile UI (dynamic text sizes, screen-reader labels, touch targets) with empty/loading/error states, offline-tolerant list (cached last data), deep link per event, ADR for every key decision, README with run steps.
 
 ## Architecture at a glance
+Full diagrams and tech stack: `docs/ARCHITECTURE.md` (interactive page: https://claude.ai/artifact/SSqc3zJ4u7GyRyVsGm2YMU).
+
 ```
 Mobile app (iOS + Android)  --REST/OpenAPI-->  API (FastAPI)  -->  PostgreSQL
                                                     ^

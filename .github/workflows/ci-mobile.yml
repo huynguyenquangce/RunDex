@@ -25,4 +25,14 @@ jobs:
           cache-dependency-path: src/mobile/package-lock.json
       - run: npm ci
       - run: npm run typecheck
-      # Add lint and test steps as soon as they exist (planned: eslint, jest).
+      - run: npm test
+        env:
+          CI: "1"
+      - name: API types are up to date
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/api/schema.d.ts
+      - run: npx --yes expo-doctor
+        env:
+          CI: "1"
+      # Planned: eslint (expo lint).

@@ -11,7 +11,7 @@ Decided: PostgreSQL, FastAPI + worker/scheduler, Docker Compose (backend), mobil
 ## 3. Commands
 _TBD_ — keep in sync with `docs/HOW-TO-RUN.md`.
 - Backend: `cd src && docker compose up --build`; tests `cd src/backend && pytest`; lint `ruff check . && ruff format --check .`
-- Mobile: `cd src/mobile && npm install && npm start`; typecheck `npm run typecheck`
+- Mobile: `cd src/mobile && npm install && npm start`; typecheck `npm run typecheck`; tests `npm test`; API types `npm run api:types`
 - Pre-upload check: `bash scripts/check-submission.sh`
 - Sync AI inputs: `bash scripts/sync-ai-inputs.sh`
 
