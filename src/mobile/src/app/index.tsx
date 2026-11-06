@@ -1,72 +1,152 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { Link } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { FlatList, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { eventsQuery } from '@/api/events';
-import { formatDate, statusLabel } from '@/lib/format';
-import { colors, fontSize, radius, spacing } from '@/theme/tokens';
+import { type EventFilters, eventsQuery } from '@/api/events';
+import { EventCard } from '@/components/EventCard';
+import { FilterChip } from '@/components/FilterChip';
+import { Message, OfflineBanner, SkeletonCards } from '@/components/ListStates';
+import { SearchField } from '@/components/SearchField';
+import { CHIPS, isChipActive, toggleChip } from '@/features/events/filters';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { colors, fontSize, spacing } from '@/theme/tokens';
 
-// Step 4: a plain list that proves the app talks to the API. The designed
-// Event List screen (search, chips, cards) is built in step 5.
 export default function EventListScreen() {
-  const query = useInfiniteQuery(eventsQuery({}));
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const netInfo = useNetInfo();
+  const [text, setText] = useState('');
+  const q = useDebouncedValue(text, 300);
+  const [chipFilters, setChipFilters] = useState<EventFilters>({});
+  const filters = useMemo<EventFilters>(() => ({ ...chipFilters, q }), [chipFilters, q]);
+  const today = useMemo(() => new Date(), []);
+
+  const query = useInfiniteQuery({ ...eventsQuery(filters), placeholderData: keepPreviousData });
   const items = query.data?.pages.flatMap((page) => page.items) ?? [];
+  const hasFilters = Boolean(q.trim()) || Object.values(chipFilters).some(Boolean);
+  const offline = netInfo.isConnected === false;
 
-  if (query.isPending) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.primary} />
-      </View>
-    );
-  }
+  const clearAll = () => {
+    setText('');
+    setChipFilters({});
+  };
 
-  if (query.isError && items.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.message}>Không tải được danh sách giải.</Text>
-        <Pressable accessibilityRole="button" onPress={() => query.refetch()} style={styles.retry}>
-          <Text style={styles.retryText}>Thử lại</Text>
-        </Pressable>
+  const header = (
+    <View>
+      {Platform.OS === 'ios' ? (
+        <View style={styles.largeTitle}>
+          <Text accessibilityRole="header" style={styles.titleIos}>
+            Giải chạy
+          </Text>
+          <Text style={styles.subtitle}>Tất cả giải chạy tại Việt Nam</Text>
+        </View>
+      ) : (
+        <View style={styles.appBar}>
+          <Text accessibilityRole="header" style={styles.titleAndroid}>
+            RunDex
+          </Text>
+        </View>
+      )}
+      <View style={styles.searchRow}>
+        <SearchField value={text} onChangeText={setText} />
       </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.chips}
+      >
+        {CHIPS.map((chip) => (
+          <FilterChip
+            key={chip.id}
+            label={chip.label}
+            selected={isChipActive(chipFilters, chip.id, today)}
+            onPress={() => setChipFilters((current) => toggleChip(current, chip.id, today))}
+          />
+        ))}
+      </ScrollView>
+      <View style={styles.listHeader}>
+        <Text style={styles.listHeaderLeft}>
+          {query.data ? `Sắp diễn ra · ${query.data.pages[0].total} giải` : 'Sắp diễn ra'}
+        </Text>
+        <Text style={styles.listHeaderRight}>Ngày gần nhất</Text>
+      </View>
+    </View>
+  );
+
+  let empty: React.JSX.Element | undefined;
+  if (query.isPending) empty = <SkeletonCards />;
+  else if (query.isError && items.length === 0)
+    empty = (
+      <Message
+        title="Không tải được danh sách giải"
+        body="Kiểm tra kết nối mạng rồi thử lại."
+        actionLabel="Thử lại"
+        onAction={() => query.refetch()}
+      />
     );
-  }
+  else if (items.length === 0)
+    empty = (
+      <Message
+        title="Không có giải nào khớp"
+        body={hasFilters ? 'Thử bỏ bớt bộ lọc hoặc đổi từ khóa.' : 'Chưa có giải nào sắp diễn ra.'}
+        actionLabel={hasFilters ? 'Xóa bộ lọc' : undefined}
+        onAction={hasFilters ? clearAll : undefined}
+      />
+    );
 
   return (
-    <FlatList
-      data={items}
-      keyExtractor={(item) => item.slug}
-      contentContainerStyle={styles.list}
-      onEndReached={() => query.hasNextPage && query.fetchNextPage()}
-      refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={() => void query.refetch()} />}
-      ListEmptyComponent={<Text style={styles.message}>Chưa có giải nào.</Text>}
-      renderItem={({ item }) => (
-        <Link href={{ pathname: '/event/[slug]', params: { slug: item.slug } }} asChild>
-          <Pressable accessibilityRole="button" style={styles.row}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.meta}>
-              {formatDate(item.start_date)} · {item.province ?? 'Việt Nam'} · {statusLabel(item.status)}
-            </Text>
-          </Pressable>
-        </Link>
-      )}
-    />
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      {offline ? <OfflineBanner /> : null}
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.slug}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.xl }]}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        ListHeaderComponent={header}
+        ListEmptyComponent={empty}
+        onEndReached={() => {
+          if (query.hasNextPage && !query.isFetchingNextPage) void query.fetchNextPage();
+        }}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl refreshing={query.isRefetching && !query.isFetchingNextPage} onRefresh={() => void query.refetch()} />
+        }
+        renderItem={({ item }) => (
+          <View style={styles.cardWrap}>
+            <EventCard
+              event={item}
+              onPress={() => router.push({ pathname: '/event/[slug]', params: { slug: item.slug } })}
+            />
+          </View>
+        )}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.md },
-  list: { padding: spacing.lg, gap: spacing.md },
-  row: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.xs,
+  screen: { flex: 1, backgroundColor: colors.bg },
+  list: { flexGrow: 1 },
+  largeTitle: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.sm, gap: 2 },
+  titleIos: { color: colors.ink, fontSize: fontSize.hero, fontWeight: '700' },
+  subtitle: { color: colors.muted, fontSize: fontSize.body },
+  appBar: { height: 64, justifyContent: 'center', paddingHorizontal: spacing.lg },
+  titleAndroid: { color: colors.ink, fontSize: fontSize.title + 2, fontWeight: '500' },
+  searchRow: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.md },
+  chips: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
   },
-  name: { color: colors.ink, fontSize: fontSize.body + 1, fontWeight: '600' },
-  meta: { color: colors.muted, fontSize: fontSize.small },
-  message: { color: colors.muted, fontSize: fontSize.body, textAlign: 'center' },
-  retry: { backgroundColor: colors.primary, borderRadius: radius.pill, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
-  retryText: { color: colors.onPrimary, fontWeight: '600' },
+  listHeaderLeft: { color: colors.muted, fontSize: fontSize.small, fontWeight: '600' },
+  listHeaderRight: { color: colors.primary, fontSize: fontSize.small, fontWeight: '500' },
+  cardWrap: { paddingHorizontal: spacing.lg },
 });

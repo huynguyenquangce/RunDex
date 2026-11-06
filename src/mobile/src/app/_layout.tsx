@@ -20,7 +20,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.bg },
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'RunDex' }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="event/[slug]" options={{ title: 'Chi tiết giải', headerBackTitle: 'Giải chạy' }} />
       </Stack>
     </PersistQueryClientProvider>
