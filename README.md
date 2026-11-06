@@ -34,6 +34,7 @@
 │   ├── DATA-SOURCES.md
 │   ├── ORGANIZER-OUTREACH.md
 │   ├── HOW-TO-RUN.md
+│   ├── ui-preview/           # clickable HTML preview of the screens (open index.html)
 │   ├── ARCHITECTURE.md       # diagrams + tech stack (also as an interactive page)
 │   ├── IMPLEMENTATION-PLAN.md
 │   ├── INGESTION-PLAN.md

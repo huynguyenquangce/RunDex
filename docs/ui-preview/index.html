@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RunDex - UI preview</title>
+<style>
+/* RunDex UI preview. A faithful HTML replica of the app screens (tokens from the Figma file and
+   src/mobile/src/theme/tokens.ts). It is NOT the real app: the app lives in src/mobile. */
+:root {
+  --primary:#FF5A1F; --primary-soft:#FFEDE5; --on-primary:#FFFFFF;
+  --ink:#111827; --muted:#6B7280; --surface:#FFFFFF; --bg:#F5F6F8; --border:#E5E7EB;
+  --trail:#0E7C4A; --trail-soft:#E4F4EB; --road:#1D4ED8; --road-soft:#E6EDFD;
+  --warn:#B45309; --warn-soft:#FEF3C7; --danger:#B91C1C; --danger-soft:#FEE2E2; --ok:#15803D;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background:#1f2430; color:var(--ink); font-family:var(--font); font-size:15px; line-height:1.35; -webkit-font-smoothing:antialiased; }
+button { font:inherit; color:inherit; cursor:pointer; border:0; background:none; padding:0; }
+button:focus-visible, input:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+
+.stage { min-height:100vh; display:flex; gap:32px; align-items:flex-start; justify-content:center; padding:28px 16px; flex-wrap:wrap; }
+.panel { width:300px; color:#e5e7eb; display:grid; gap:16px; }
+.panel h1 { margin:0; font-size:20px; letter-spacing:-.01em; color:#fff; }
+.panel p { margin:0; font-size:13px; color:#aab1bf; }
+.panel fieldset { border:1px solid #394054; border-radius:10px; padding:10px 12px 12px; margin:0; display:grid; gap:6px; }
+.panel legend { padding:0 6px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#aab1bf; }
+.panel label { display:flex; gap:8px; align-items:center; font-size:14px; }
+.panel .note { background:#2a3042; border-radius:10px; padding:10px 12px; font-size:12.5px; color:#cbd2de; }
+
+/* phone */
+.phone { width:390px; height:844px; background:var(--bg); border-radius:46px; border:10px solid #0b0d12; box-shadow:0 20px 60px rgba(0,0,0,.5); position:relative; overflow:hidden; display:flex; flex-direction:column; }
+.phone.android { width:360px; height:780px; border-radius:30px; }
+.statusbar { height:44px; flex:none; display:flex; justify-content:space-between; align-items:center; padding:0 26px; font-weight:600; font-size:15px; }
+.android .statusbar { height:30px; padding:0 16px; font-size:13px; }
+.statusbar .right { display:flex; gap:6px; align-items:center; font-size:12px; }
+.statusbar .bat { width:24px; height:12px; border-radius:3px; background:var(--ink); }
+.screen { flex:1; min-height:0; display:flex; flex-direction:column; position:relative; }
+.scroll { flex:1; overflow-y:auto; overscroll-behavior:contain; }
+.homebar { position:absolute; bottom:8px; left:50%; width:134px; height:5px; border-radius:3px; background:var(--ink); transform:translateX(-50%); pointer-events:none; z-index:5; }
+.android .homebar { width:108px; height:4px; bottom:9px; }
+
+/* list screen */
+.offline { background:var(--ink); color:#fff; font-size:13px; padding:8px 16px; display:flex; gap:8px; align-items:center; }
+.largetitle { padding:8px 16px 8px; }
+.largetitle h2 { margin:0; font-size:34px; font-weight:700; letter-spacing:-.01em; }
+.largetitle p { margin:2px 0 0; color:var(--muted); }
+.appbar { height:64px; padding:0 16px; display:flex; align-items:center; }
+.appbar h2 { margin:0; font-size:22px; font-weight:500; }
+.searchrow { display:flex; gap:8px; align-items:center; padding:4px 16px 12px; }
+.search { flex:1; display:flex; align-items:center; gap:8px; height:44px; padding:0 14px; border:1px solid var(--border); background:var(--surface); border-radius:12px; }
+.android .search { height:52px; border-radius:28px; }
+.search input { flex:1; min-width:0; border:0; outline:0; background:none; font:inherit; font-size:15px; color:var(--ink); }
+.search input::placeholder { color:var(--muted); }
+.filterbtn { position:relative; width:44px; height:44px; flex:none; display:grid; place-items:center; border:1px solid var(--border); background:var(--surface); border-radius:12px; }
+.android .filterbtn { width:52px; height:52px; border-radius:26px; }
+.filterbtn .badge { position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:var(--primary); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; }
+.chips { display:flex; gap:8px; padding:0 16px 12px; overflow-x:auto; scrollbar-width:none; }
+.chips::-webkit-scrollbar { display:none; }
+.chip { flex:none; min-height:44px; padding:0 14px; border:1px solid var(--border); background:var(--surface); border-radius:999px; font-size:14px; font-weight:500; color:var(--ink); }
+.android .chip { border-radius:8px; }
+.chip[aria-pressed="true"] { background:var(--primary); border-color:var(--primary); color:#fff; }
+.listhead { display:flex; justify-content:space-between; padding:0 16px 8px; font-size:13px; }
+.listhead .l { color:var(--muted); font-weight:600; }
+.listhead .r { color:var(--primary); font-weight:500; }
+.cards { display:grid; gap:12px; padding:0 16px 40px; }
+
+/* event card */
+.card { width:100%; text-align:left; display:flex; align-items:flex-start; gap:12px; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:16px; }
+.card:active { opacity:.85; }
+.date { flex:none; width:52px; padding:8px 0; text-align:center; background:var(--primary-soft); border-radius:12px; color:var(--primary); }
+.date b { display:block; font-size:22px; line-height:1.15; }
+.date span { font-size:11px; font-weight:500; }
+.info { flex:1; min-width:0; display:grid; gap:6px; }
+.badges { display:flex; gap:6px; flex-wrap:wrap; }
+.pill { border-radius:999px; padding:3px 8px; font-size:11px; font-weight:500; white-space:nowrap; }
+.t-ok { color:var(--ok); background:var(--trail-soft); } .t-warn { color:var(--warn); background:var(--warn-soft); }
+.t-muted { color:var(--muted); background:var(--bg); } .t-danger { color:var(--danger); background:var(--danger-soft); }
+.t-trail { color:var(--trail); background:var(--trail-soft); } .t-road { color:var(--road); background:var(--road-soft); }
+.name { font-size:16px; font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.meta { display:flex; align-items:center; gap:4px; color:var(--muted); font-size:13px; min-width:0; }
+.meta span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chev { flex:none; align-self:center; }
+
+/* states */
+.skeleton { height:116px; border-radius:16px; background:var(--border); opacity:.6; animation:pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity:.3; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation:none; } }
+.message { text-align:center; padding:32px 24px; display:grid; gap:8px; justify-items:center; }
+.message h3 { margin:0; font-size:18px; } .message p { margin:0; color:var(--muted); }
+.btn { min-height:44px; padding:0 22px; border-radius:999px; background:var(--primary); color:#fff; font-weight:600; margin-top:8px; }
+
+/* filter sheet */
+body.static .sheet, body.static .scrim, body.static .skeleton { animation:none !important; }
+.scrim { position:absolute; inset:0; background:rgba(0,0,0,.4); z-index:20; animation:fade .2s; }
+.sheet { position:absolute; left:0; right:0; bottom:0; z-index:21; max-height:88%; display:flex; flex-direction:column; background:var(--surface); border-radius:24px 24px 0 0; padding:8px 0 22px; animation:up .25s ease-out; }
+@keyframes up { from { transform:translateY(40%); opacity:.4; } } @keyframes fade { from { opacity:0; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .scrim { animation:none; } }
+.grab { width:36px; height:4px; border-radius:2px; background:var(--border); margin:0 auto; }
+.sheethead { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; }
+.sheethead h3 { margin:0; font-size:20px; }
+.groups { overflow-y:auto; padding:0 16px 12px; display:grid; gap:16px; }
+.group h4 { margin:0 0 8px; font-size:14px; font-weight:600; }
+.opts { display:flex; flex-wrap:wrap; gap:8px; }
+.switchrow { display:flex; justify-content:space-between; align-items:center; min-height:44px; }
+.switch { width:51px; height:31px; border-radius:16px; background:var(--border); position:relative; transition:background .15s; flex:none; }
+.switch::after { content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .15s; }
+.switch[aria-checked="true"] { background:var(--primary); } .switch[aria-checked="true"]::after { transform:translateX(20px); }
+.foot { display:flex; gap:12px; padding:8px 16px 0; }
+.foot .clear { min-height:52px; padding:0 16px; font-weight:600; }
+.foot .apply { flex:1; min-height:52px; border-radius:999px; background:var(--primary); color:#fff; font-weight:600; font-size:16px; }
+
+/* detail */
+.detailbar { height:44px; flex:none; display:flex; align-items:center; gap:8px; padding:0 8px; }
+.android .detailbar { height:56px; }
+.back { display:flex; align-items:center; gap:2px; min-height:44px; padding:0 8px; color:var(--primary); font-size:15px; }
+.android .back { color:var(--ink); }
+.detailbar .ttl { font-weight:600; }
+.android .detailbar .ttl { font-size:20px; font-weight:500; }
+.detail { padding:16px 16px 24px; display:grid; gap:14px; }
+.detail h1 { margin:0; font-size:28px; line-height:1.15; letter-spacing:-.01em; }
+.notice { border-radius:12px; padding:12px; font-weight:600; }
+.row { display:flex; gap:10px; align-items:flex-start; }
+.row .tx { flex:1; min-width:0; } .row .tx b { font-weight:500; display:block; }
+.link { color:var(--primary); font-size:13px; font-weight:500; padding:2px 0; text-decoration:none; display:inline-block; }
+.deadline { display:flex; gap:10px; align-items:center; padding:12px; border-radius:12px; background:var(--primary-soft); }
+.deadline b { display:block; font-size:14px; font-weight:600; } .deadline span { color:var(--muted); font-size:13px; }
+.sec h3 { margin:0 0 10px; font-size:16px; }
+.dist { display:flex; gap:12px; align-items:center; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-bottom:12px; }
+.dist .lab { min-width:56px; font-size:20px; font-weight:700; }
+.dist .p { font-size:13px; font-weight:500; } .dist .s { color:var(--muted); font-size:12px; }
+.source { display:flex; gap:8px; color:var(--muted); font-size:12px; }
+.bottom { flex:none; background:var(--surface); border-top:1px solid var(--border); padding:12px 16px 30px; display:grid; gap:6px; }
+.cta { min-height:52px; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:999px; background:var(--primary); color:#fff; font-weight:600; font-size:16px; text-decoration:none; }
+.cta.secondary { background:var(--surface); color:var(--primary); border:1.5px solid var(--primary); }
+.caption { text-align:center; color:var(--muted); font-size:12px; }
+
+@media (max-width: 760px) {
+  body { background:var(--bg); }
+  .stage { padding:0; display:block; }
+  .panel { width:auto; padding:12px 16px; background:#1f2430; }
+  .phone, .phone.android { width:100%; height:calc(100vh - 8px); border:0; border-radius:0; box-shadow:none; }
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="panel" aria-label="Preview controls">
+    <div>
+      <h1>RunDex UI preview</h1>
+      <p>Interactive replica of the app screens, with real events exported on <b id="gen"></b>.</p>
+    </div>
+    <fieldset><legend>Platform</legend>
+      <label><input type="radio" name="platform" value="ios" checked> iPhone (large title, pill chips)</label>
+      <label><input type="radio" name="platform" value="android"> Android (app bar, rounded chips)</label>
+    </fieldset>
+    <fieldset><legend>List state</legend>
+      <label><input type="radio" name="sim" value="normal" checked> Normal (live data)</label>
+      <label><input type="radio" name="sim" value="loading"> Loading skeleton</label>
+      <label><input type="radio" name="sim" value="error"> Network error</label>
+      <label><input type="radio" name="sim" value="empty"> Empty catalog</label>
+      <label><input type="checkbox" id="offline"> Offline banner</label>
+    </fieldset>
+    <div class="note">
+      <b>What is real:</b> design tokens, layout, texts, the filter logic (same rules as the API) and the events.<br>
+      <b>What is not:</b> this is HTML, not the React Native app. Fonts, scrolling feel, the keyboard and native sheets differ; check the real app with Expo Go.<br>
+      "Today" in this preview is <b id="today"></b>.
+    </div>
+  </aside>
+  <div class="phone" id="phone" aria-label="Phone preview"></div>
+</div>
+<script id="data" type="application/json">{"generatedAt":"2026-11-06","today":"2026-11-06","regions":{"north":["Hà Nội","Hải Phòng","Quảng Ninh","Bắc Ninh","Hưng Yên","Ninh Bình","Thái Nguyên","Phú Thọ","Lào Cai","Sơn La","Hòa Bình","Lai Châu","Điện Biên","Lạng Sơn","Cao Bằng","Tuyên Quang","Hà Giang","Yên Bái","Bắc Giang","Vĩnh Phúc","Hải Dương","Thái Bình","Nam Định","Hà Nam"],"central":["Thanh Hóa","Nghệ An","Hà Tĩnh","Quảng Bình","Quảng Trị","Huế","Thừa Thiên Huế","Đà Nẵng","Quảng Nam","Quảng Ngãi","Bình Định","Phú Yên","Khánh Hòa","Ninh Thuận","Bình Thuận"],"highlands":["Kon Tum","Gia Lai","Đắk Lắk","Đắk Nông","Lâm Đồng"],"south":["TP. Hồ Chí Minh","Hồ Chí Minh","Cần Thơ","Đồng Nai","Bà Rịa - Vũng Tàu","Bình Dương","Bình Phước","Tây Ninh","Long An","Tiền Giang","Bến Tre","Vĩnh Long","Trà Vinh","Đồng Tháp","An Giang","Kiên Giang","Hậu Giang","Sóc Trăng","Bạc Liêu","Cà Mau"]},"events":[{"slug":"lam-dong-trail-2026-da-lat","name":"Lâm Đồng Trail 2026, Đà Lạt","organizer":null,"event_type":"trail","start_date":"2026-11-06","end_date":null,"province":"Lâm Đồng","venue":"TTC World, Thung Lũng Tình Yêu, Đà Lạt","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.004171Z","distances":[{"label":"85K","distance_km":85.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"55K","distance_km":55.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"25K","distance_km":25.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"15K","distance_km":15.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":"https://ticket.irace.vn/lamdong-trail-2026","registration_deadline":null,"source_name":"Linh Academy - trail calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail"},{"slug":"salonpas-run-2026","name":"Salonpas Run 2026","organizer":null,"event_type":"road","start_date":"2026-11-08","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Công viên Sáng tạo, TP. Thủ Đức","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.038460Z","distances":[{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"standard-chartered-marathon-di-san-ha-noi-2026","name":"Standard Chartered Marathon Di sản Hà Nội 2026","organizer":null,"event_type":"road","start_date":"2026-11-08","end_date":null,"province":"Hà Nội","venue":null,"status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:24:42.057330Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"VPBank Hanoi Marathon","source_url":"https://hanoi-marathon.com/"},{"slug":"ca-mau-marathon-2026-cup-petrovietnam","name":"Cà Mau Marathon 2026, cúp Petrovietnam","organizer":null,"event_type":"mixed","start_date":"2026-11-15","end_date":null,"province":"Cà Mau","venue":"Trung tâm hội nghị tỉnh Cà Mau","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.163173Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"2K","distance_km":2.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"HappyRun - marathon schedule","source_url":"https://happyrun.vn/blogs/chaybo/giai-chay-bo-marathon"},{"slug":"quang-truc-half-marathon-2026","name":"Quảng Trực Half Marathon 2026","organizer":null,"event_type":"road","start_date":"2026-11-15","end_date":null,"province":"Lâm Đồng","venue":"Xã Quảng Trực, Lâm Đồng","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.055410Z","distances":[{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"1.5K","distance_km":1.5,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"trang-an-marathon-2026","name":"Trang An Marathon 2026","organizer":null,"event_type":"road","start_date":"2026-11-15","end_date":null,"province":"Ninh Bình","venue":null,"status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.046707Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"tri-ton-cross-country-2026","name":"Tri Tôn Cross Country 2026","organizer":null,"event_type":"trail","start_date":"2026-11-15","end_date":null,"province":"An Giang","venue":"Quảng trường Tri Tôn, An Giang","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.064082Z","distances":[{"label":"45K","distance_km":45.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"12K","distance_km":12.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"giai-chay-quoc-te-vi-da-lat-xanh-2026","name":"Giải chạy Quốc tế vì Đà Lạt Xanh 2026","organizer":null,"event_type":"road","start_date":"2026-11-22","end_date":null,"province":"Lâm Đồng","venue":"Đà Lạt, Lâm Đồng","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.080453Z","distances":[{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"1.5K","distance_km":1.5,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"halong-bay-heritage-marathon-2026","name":"Halong Bay Heritage Marathon 2026","organizer":null,"event_type":"road","start_date":"2026-11-22","end_date":null,"province":"Quảng Ninh","venue":"Hạ Long","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.072570Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"ultra-trail-cao-bang-2026","name":"Ultra Trail Cao Bang 2026","organizer":null,"event_type":"trail","start_date":"2026-11-27","end_date":"2026-11-29","province":"Cao Bằng","venue":"Bản Giốc, Cao Bằng, Việt Nam","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.778718Z","distances":[{"label":"160K","distance_km":160.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"100K","distance_km":100.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"70K","distance_km":70.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"25K","distance_km":25.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Pace8 - Vietnam Trail Marathon 2027","source_url":"https://pace8.vn/su-kien/vietnam-trail-marathon-2027"},{"slug":"yen-tu-heritage-marathon-2026","name":"Yên Tử Heritage Marathon 2026","organizer":null,"event_type":"road","start_date":"2026-11-28","end_date":"2026-11-29","province":"Quảng Ninh","venue":"Di sản Văn hóa Thế giới Yên Tử, tỉnh Quảng Ninh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.809834Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Pace8 - Vietnam Trail Marathon 2027","source_url":"https://pace8.vn/su-kien/vietnam-trail-marathon-2027"},{"slug":"dong-nai-marathon-2026","name":"Đồng Nai Marathon 2026","organizer":null,"event_type":"road","start_date":"2026-11-29","end_date":null,"province":"Đồng Nai","venue":"Trị An, Đồng Nai","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.097231Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"vnexpress-marathon-hanoi-midnight-2026","name":"VnExpress Marathon Hanoi Midnight 2026","organizer":null,"event_type":"road","start_date":"2026-11-29","end_date":null,"province":"Hà Nội","venue":"Hà Nội","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.089443Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"vung-tau-city-trail-2026","name":"Vung Tau City Trail 2026","organizer":null,"event_type":"trail","start_date":"2026-11-29","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Vũng Tàu, nay thuộc TP.HCM (trước thuộc Bà Rịa - Vũng Tàu)","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.012673Z","distances":[{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":"https://ticket.irace.vn/vung-tau-city-trail-2026","registration_deadline":null,"source_name":"Linh Academy - trail calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail"},{"slug":"hanh-trinh-tiep-suc-2026","name":"Hành Trình Tiếp Sức 2026","organizer":null,"event_type":"road","start_date":"2026-12-06","end_date":null,"province":"Hà Nội","venue":"Vườn hoa phố đi bộ Trịnh Công Sơn, Tây Hồ, Hà Nội","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.130192Z","distances":[{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"3K","distance_km":3.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"nghe-an-legacy-marathon-2026","name":"Nghệ An Legacy Marathon 2026","organizer":null,"event_type":"road","start_date":"2026-12-06","end_date":null,"province":"Nghệ An","venue":"Cửa Lò, Nghệ An","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.114208Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"run-for-the-heart-chay-vi-trai-tim-2026","name":"Run For The Heart, Chạy vì trái tim 2026","organizer":null,"event_type":"road","start_date":"2026-12-06","end_date":null,"province":"Hà Nội","venue":"Công viên Yên Sở, Hà Nội","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.138513Z","distances":[{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"2K","distance_km":2.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"techcombank-hcmc-international-marathon-2026","name":"Techcombank HCMC International Marathon 2026","organizer":"Sunrise Events","event_type":"road","start_date":"2026-12-06","end_date":null,"province":"TP. Hồ Chí Minh","venue":null,"status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.105975Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"thanh-hoa-marathon-2026","name":"Thanh Hoá Marathon 2026","organizer":null,"event_type":"road","start_date":"2026-12-06","end_date":null,"province":"Thanh Hóa","venue":"Trung tâm TDTT Hạc Thành, Thanh Hoá","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.122555Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"prenn-trail-summit-2026-da-lat","name":"Prenn Trail Summit 2026, Đà Lạt","organizer":null,"event_type":"trail","start_date":"2026-12-09","end_date":null,"province":"Lâm Đồng","venue":"Chân đèo Prenn, Đà Lạt","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.021298Z","distances":[{"label":"250K","distance_km":250.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"187K","distance_km":187.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"103K","distance_km":103.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"55K","distance_km":55.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"25K","distance_km":25.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"3K","distance_km":3.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":"https://irace.vn/su-kien/prenn-trail-challenge","registration_deadline":null,"source_name":"Linh Academy - trail calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail"},{"slug":"nha-trang-night-run-2026","name":"Nha Trang Night Run 2026","organizer":null,"event_type":"road","start_date":"2026-12-12","end_date":null,"province":"Khánh Hòa","venue":"Quảng trường 2 Tháng 4, Nha Trang","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.146682Z","distances":[{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"can-tho-heritage-marathon-2026","name":"Cần Thơ Heritage Marathon 2026","organizer":"DHA Vietnam","event_type":"road","start_date":"2026-12-20","end_date":null,"province":"TP. Cần Thơ","venue":"Song Hau Park, quận Ninh Kiều, TP. Cần Thơ","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.155508Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Linh Academy - race calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/giai-chay/giai-chay-bo"},{"slug":"cuc-phuong-jungle-paths-2026","name":"Cuc Phuong Jungle Paths 2026","organizer":null,"event_type":"trail","start_date":"2026-12-25","end_date":"2026-12-27","province":null,"venue":"VƯỜN QUỐC GIA CÚC PHƯƠNG","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.789732Z","distances":[{"label":"100K","distance_km":100.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"75K","distance_km":75.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"25K","distance_km":25.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Pace8 - Vietnam Trail Marathon 2027","source_url":"https://pace8.vn/su-kien/vietnam-trail-marathon-2027"},{"slug":"son-tra-city-trail-2026-da-nang","name":"Sơn Trà City Trail 2026, Đà Nẵng","organizer":null,"event_type":"trail","start_date":"2026-12-27","end_date":null,"province":"TP. Đà Nẵng","venue":"Bán đảo Sơn Trà, Đà Nẵng","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:12.029746Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":"https://ticket.irace.vn/son-tra-city-trail-2026","registration_deadline":null,"source_name":"Linh Academy - trail calendar 2026-2027","source_url":"https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail"},{"slug":"vnexpress-hai-phong-2026","name":"Vnexpress Hải Phòng 2026","organizer":null,"event_type":"road","start_date":"2026-12-27","end_date":null,"province":"Hải Phòng","venue":"Hải Phòng","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.800093Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"Pace8 - Vietnam Trail Marathon 2027","source_url":"https://pace8.vn/su-kien/vietnam-trail-marathon-2027"},{"slug":"tien-phong-marathon-dien-bien-discovery-2027","name":"Tiền Phong Marathon – Điện Biên Discovery 2027","organizer":"Báo Tiền Phong","event_type":"road","start_date":"2027-01-02","end_date":null,"province":"Điện Biên","venue":null,"status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.821122Z","distances":[{"label":"48K","distance_km":48.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"khoi-song-binh-minh-2027","name":"Khơi Sóng Bình Minh 2027","organizer":null,"event_type":"road","start_date":"2027-01-03","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Quảng trường Tam Thắng, phường Vũng Tàu, TP.HCM","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.831431Z","distances":[{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"vietnam-highlands-trail-by-utmb-2027","name":"Vietnam Highlands Trail by UTMB 2027","organizer":null,"event_type":"trail","start_date":"2027-01-08","end_date":null,"province":"Lâm Đồng","venue":null,"status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.841367Z","distances":[{"label":"100K","distance_km":100.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"50K","distance_km":50.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"20K","distance_km":20.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"bac-ninh-legacy-marathon-2027","name":"Bắc Ninh Legacy Marathon 2027","organizer":null,"event_type":"road","start_date":"2027-01-10","end_date":null,"province":"Bắc Ninh","venue":"Quảng trường Trung tâm Văn hóa Kinh Bắc","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.850333Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"mang-den-ultra-trail-2027","name":"Măng Đen Ultra Trail 2027","organizer":null,"event_type":"trail","start_date":"2027-01-15","end_date":null,"province":"Quảng Ngãi","venue":"xã Măng Đen","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.859327Z","distances":[{"label":"100K","distance_km":100.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"70K","distance_km":70.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"50K","distance_km":50.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"25K","distance_km":25.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"15K","distance_km":15.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"dat-thep-city-trail-2027","name":"Đất Thép City Trail 2027","organizer":null,"event_type":"mixed","start_date":"2027-01-23","end_date":null,"province":"TP. Hồ Chí Minh","venue":"xã Tân An Hội, TP.HCM","status":"registration_open","closing_soon":false,"days_left":65,"verified":true,"last_verified_at":"2026-11-06T08:30:11.868824Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"7K","distance_km":7.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":"2027-01-10","source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"tet-run-mien-nam-2027","name":"Tết Run Miền Nam 2027","organizer":null,"event_type":"road","start_date":"2027-01-24","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Vinhomes Grand Park","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.877410Z","distances":[{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"minh-dam-discovery-marathon-2027","name":"Minh Đạm Discovery Marathon 2027","organizer":null,"event_type":"road","start_date":"2027-02-16","end_date":null,"province":null,"venue":"Khu vực Minh Đạm","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.885310Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"bac-son-marathon-na-nhem-festival-2027","name":"Bắc Sơn Marathon – Ná Nhèm Festival 2027","organizer":null,"event_type":"road","start_date":"2027-02-21","end_date":null,"province":"Lạng Sơn","venue":"Sân Trung tâm hành chính xã, Làng du lịch cộng đồng Quỳnh Sơn","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.893978Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"15K","distance_km":15.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"7K","distance_km":7.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"dinh-harvest-spring-2027","name":"Dinh Harvest Spring 2027","organizer":"Trail Station","event_type":"trail","start_date":"2027-02-27","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.902965Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"mang-den-lala-trail-2027","name":"Măng Đen LaLa Trail 2027","organizer":null,"event_type":"trail","start_date":"2027-03-05","end_date":null,"province":"Quảng Ngãi","venue":"Măng Đen","status":"registration_open","closing_soon":false,"days_left":106,"verified":true,"last_verified_at":"2026-11-06T08:30:11.910067Z","distances":[{"label":"50K","distance_km":50.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"25K","distance_km":25.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"10K","distance_km":10.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":"2027-02-20","source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"ultra-asia-race-2027","name":"Ultra ASIA Race 2027","organizer":null,"event_type":"trail","start_date":"2027-03-08","end_date":null,"province":null,"venue":"Mai Châu, Tây Bắc Việt Nam","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.918286Z","distances":[{"label":"160K","distance_km":160.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"dalat-ultra-trail-2027","name":"Dalat Ultra Trail 2027","organizer":null,"event_type":"trail","start_date":"2027-03-19","end_date":null,"province":"Lâm Đồng","venue":"Thung Lũng Tình Yêu, Đà Lạt","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.926377Z","distances":[{"label":"160K","distance_km":160.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"110K","distance_km":110.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"75K","distance_km":75.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"50K","distance_km":50.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"21K","distance_km":21.1,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"15K","distance_km":15.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null},{"label":"5K","distance_km":5.0,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"manulife-danang-international-marathon-2027","name":"Manulife Danang International Marathon 2027","organizer":null,"event_type":"road","start_date":"2027-03-21","end_date":null,"province":"TP. Đà Nẵng","venue":"East Sea Park","status":"registration_open","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.759140Z","distances":[{"label":"42K","distance_km":42.2,"start_time":null,"fee_vnd":null,"elevation_gain_m":null,"cutoff_minutes":null,"registration_deadline":null}],"description":null,"map_url":null,"registration_url":"https://in.njuko.com/dananginternationalmarathon2027?currentPage=select-competition","registration_deadline":null,"source_name":"Marathon Scout - Danang","source_url":"https://marathonscout.com/races/danang-international-marathon"},{"slug":"tien-phong-marathon-2027","name":"Tiền Phong Marathon 2027","organizer":"Báo Tiền Phong","event_type":"road","start_date":"2027-03-21","end_date":null,"province":"Bắc Ninh","venue":null,"status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.936062Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"the-explorer-trail-2027","name":"The Explorer Trail 2027","organizer":"Trail Station","event_type":"trail","start_date":"2027-04-17","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.943897Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"dinh-discovery-open-2027","name":"Dinh Discovery Open 2027","organizer":null,"event_type":"trail","start_date":"2027-05-21","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.952899Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"summer-symphony-trail-2027","name":"Summer Symphony Trail 2027","organizer":null,"event_type":"trail","start_date":"2027-06-26","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.961259Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"kiss-the-rain-2027","name":"Kiss The Rain 2027","organizer":null,"event_type":"trail","start_date":"2027-07-24","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.969249Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"harvest-moon-breaking-2027","name":"Harvest Moon Breaking 2027","organizer":null,"event_type":"trail","start_date":"2027-08-28","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.976315Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"dinh-harvest-flowers-2027","name":"Dinh Harvest Flowers 2027","organizer":null,"event_type":"trail","start_date":"2027-10-16","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.983225Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"that-son-trail-2027","name":"Thất Sơn Trail 2027","organizer":"Trail Station","event_type":"trail","start_date":"2027-11-20","end_date":null,"province":"An Giang","venue":"vùng Thất Sơn","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.989860Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"},{"slug":"dinh-harvest-final-2027","name":"Dinh Harvest Final 2027","organizer":"Trail Station","event_type":"trail","start_date":"2027-12-25","end_date":null,"province":"TP. Hồ Chí Minh","venue":"Núi Dinh","status":"scheduled","closing_soon":false,"days_left":null,"verified":true,"last_verified_at":"2026-11-06T08:30:11.996400Z","distances":[],"description":null,"map_url":null,"registration_url":null,"registration_deadline":null,"source_name":"TikPik - 2027 race calendar","source_url":"https://tikpik.vn/blog/lich-giai-chay-bo-2027/"}]}</script>
+<script>
+// ===== PURE:START (no DOM; also run in Node to cross-check against the API) ==========================
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const TODAY = DATA.today, REGIONS = DATA.regions, EVENTS = DATA.events;
+const PAGE = 20;
+const pad = n => String(n).padStart(2, '0');
+const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseIso = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+const endOfMonth = d => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+const addMonths = (d, n) => new Date(d.getFullYear(), d.getMonth() + n, d.getDate());
+const fold = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+const WEEKDAYS = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+const fmtDate = iso => { const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}`; };
+const weekday = iso => WEEKDAYS[parseIso(iso).getDay()];
+const fmtTime = t => t.slice(0, 5);
+const thousands = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const vnd = n => `${thousands(n)} ₫`;
+const cutoff = m => { const h = Math.floor(m / 60), r = m % 60; return h === 0 ? `${r} phút` : r === 0 ? `${h} giờ` : `${h} giờ ${r}`; };
+const isHttp = u => typeof u === 'string' && /^https?:\/\//i.test(u);
+const mapUrl = (venue, province) => { const p = [venue, province].filter(Boolean).join(', '); return p ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p) : null; };
+const typeLabel = t => t === 'trail' ? 'Trail' : t === 'road' ? 'Đường nhựa' : 'Kết hợp';
+const STATUS_LABEL = { scheduled: 'Chưa mở đăng ký', registration_open: 'Đang mở đăng ký', registration_closed: 'Đã đóng đăng ký', postponed: 'Hoãn', cancelled: 'Đã hủy', completed: 'Đã diễn ra' };
+function statusBadge(e) {
+  if (e.closing_soon && e.days_left != null) return { label: e.days_left === 0 ? 'Hôm nay là hạn cuối' : `Còn ${e.days_left} ngày`, tone: 'warn' };
+  if (e.status === 'registration_open') return { label: 'Đang mở đăng ký', tone: 'ok' };
+  if (e.status === 'postponed') return { label: 'Hoãn', tone: 'warn' };
+  if (e.status === 'cancelled') return { label: 'Đã hủy', tone: 'danger' };
+  return { label: STATUS_LABEL[e.status] || e.status, tone: 'muted' };
+}
+function dateLine(start, end, time) {
+  const w = weekday(start);
+  if (end && end !== start) return `${w}, ${fmtDate(start).slice(0, 5)} – ${fmtDate(end)}`;
+  return time ? `${w}, ${fmtDate(start)} · ${fmtTime(time)}` : `${w}, ${fmtDate(start)}`;
+}
+function distanceDetails(d) {
+  const a = [d.start_time ? `Xuất phát ${fmtTime(d.start_time)}` : null, d.fee_vnd != null ? `Phí ${vnd(d.fee_vnd)}` : null].filter(Boolean);
+  const b = [d.elevation_gain_m != null ? `D+ ${thousands(d.elevation_gain_m)} m` : null, d.cutoff_minutes != null ? `Cut-off ${cutoff(d.cutoff_minutes)}` : null].filter(Boolean);
+  return { primary: a.join(' · '), secondary: b.join(' · ') };
+}
+function deadlineLines(deadline, daysLeft, status) {
+  if (!deadline) return null;
+  const title = `Hạn đăng ký: ${fmtDate(deadline)}`;
+  if (status === 'registration_closed') return { title, sub: 'Đã đóng đăng ký' };
+  if (daysLeft == null) return { title, sub: 'Đã hết hạn' };
+  return { title, sub: daysLeft === 0 ? 'Hôm nay là hạn cuối' : `Còn ${daysLeft} ngày` };
+}
+// filters: { q, type, distance[], region, from, to, openOnly } (same semantics as GET /v1/events)
+const BUCKETS = { '5': [4.5, 6], '10': [9, 11], '21': [20, 22], '42': [41, 43], 'ultra': [50, 10000] };
+const searchText = e => fold([e.name, e.province, e.venue, e.organizer].filter(Boolean).join(' '));
+EVENTS.forEach(e => { e._search = searchText(e); });
+function applyFilters(f) {
+  const tokens = (f.q || '').trim().slice(0, 100).split(/\s+/).filter(Boolean).map(fold);
+  return EVENTS.filter(e => {
+    const last = e.end_date || e.start_date;
+    if (f.from ? last < f.from : last < TODAY) return false;
+    if (f.to && e.start_date > f.to) return false;
+    if (f.type && e.event_type !== f.type) return false;
+    if (f.region && !(REGIONS[f.region] || []).includes(e.province)) return false;
+    if (tokens.some(t => !e._search.includes(t))) return false;
+    if (f.distance && f.distance.length && !e.distances.some(d => f.distance.some(b => d.distance_km >= BUCKETS[b][0] && d.distance_km <= BUCKETS[b][1]))) return false;
+    if (f.openOnly && !(e.status === 'registration_open' && (!e.registration_deadline || e.registration_deadline >= TODAY))) return false;
+    return true;
+  }).sort((a, b) => a.start_date < b.start_date ? -1 : a.start_date > b.start_date ? 1 : a.slug < b.slug ? -1 : 1);
+}
+const TODAY_D = parseIso(TODAY);
+const TIME_OPTIONS = [['thisMonth', 'Tháng này'], ['next3', '3 tháng tới'], ['next6', '6 tháng tới']];
+const timeRange = id => ({ from: TODAY, to: isoOf(id === 'thisMonth' ? endOfMonth(TODAY_D) : addMonths(TODAY_D, id === 'next3' ? 3 : 6)) });
+const activeTime = f => (TIME_OPTIONS.find(([id]) => { const r = timeRange(id); return f.from === r.from && f.to === r.to; }) || [])[0];
+const hasChip = f => Boolean(f.type || (f.distance && f.distance.length) || f.region || f.from || f.to || f.openOnly);
+const groupCount = f => [f.type, f.distance && f.distance.length, f.region, f.from || f.to, f.openOnly].filter(Boolean).length;
+const setType = (f, t) => ({ ...f, type: t });
+const toggleDistance = (f, id) => { const c = f.distance || []; const n = c.includes(id) ? c.filter(x => x !== id) : [...c, id]; return { ...f, distance: n.length ? n : undefined }; };
+const setRegion = (f, r) => ({ ...f, region: r });
+const setTime = (f, id) => id ? { ...f, ...timeRange(id) } : { ...f, from: undefined, to: undefined };
+const setOpen = (f, v) => ({ ...f, openOnly: v || undefined });
+const CHIPS = [['all', 'Tất cả'], ['trail', 'Trail'], ['road', 'Đường nhựa'], ['thisMonth', 'Tháng này'], ['21', '21K'], ['42', '42K'], ['north', 'Miền Bắc']];
+function chipActive(f, id) {
+  if (id === 'all') return !hasChip(f);
+  if (id === 'trail' || id === 'road') return f.type === id;
+  if (id === 'thisMonth') return activeTime(f) === 'thisMonth';
+  if (id === '21' || id === '42') return Boolean(f.distance && f.distance.includes(id));
+  return f.region === 'north';
+}
+function toggleChip(f, id) {
+  const on = chipActive(f, id);
+  if (id === 'all') return {};
+  if (id === 'trail' || id === 'road') return setType(f, on ? undefined : id);
+  if (id === 'thisMonth') return setTime(f, on ? undefined : 'thisMonth');
+  if (id === '21' || id === '42') return toggleDistance(f, id);
+  return setRegion(f, on ? undefined : 'north');
+}
+// ===== PURE:END =======================================================================================
+if (typeof document !== 'undefined' && document.getElementById('phone')) {
+const ICON = {
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>', chevron: '<path d="m9 18 6-6-6-6"/>', back: '<path d="m15 18-6-6 6-6"/>',
+  pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', filter: '<path d="M4 6h16M7 12h10M10 18h4"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18"/>', calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  external: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  cloudOff: '<path d="M3 3l18 18M9 5a6 6 0 0 1 10 4h1a4 4 0 0 1 2 7M6 9a5 5 0 0 0-1 10h11"/>',
+};
+const icon = (n, size = 20, color = 'var(--muted)') => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const S = { platform: 'ios', screen: 'list', slug: null, text: '', filters: {}, draft: {}, sheet: false, sim: 'normal', offline: false, shown: PAGE };
+const phone = document.getElementById('phone');
+document.getElementById('gen').textContent = DATA.generatedAt;
+document.getElementById('today').textContent = fmtDate(TODAY);
+
+function card(e) {
+  const st = statusBadge(e);
+  const place = [e.venue, e.province].filter(Boolean).join(', ') || 'Việt Nam';
+  const d = e.distances.map(x => x.label).join(' · ');
+  const tt = e.event_type === 'trail' ? 'trail' : e.event_type === 'road' ? 'road' : 'muted';
+  return `<button class="card" data-act="open" data-slug="${esc(e.slug)}" aria-label="${esc(`${e.name}, ${fmtDate(e.start_date)}, ${place}, ${st.label}`)}">
+    <div class="date"><b>${Number(e.start_date.slice(8))}</b><span>THG ${Number(e.start_date.slice(5, 7))}</span></div>
+    <div class="info"><div class="badges"><span class="pill t-${tt}">${typeLabel(e.event_type)}</span><span class="pill t-${st.tone}">${esc(st.label)}</span></div>
+      <div class="name">${esc(e.name)}</div><div class="meta">${icon('pin', 14)}<span>${esc(place)}</span></div>${d ? `<div class="meta"><span>${esc(d)}</span></div>` : ''}</div>
+    <span class="chev">${icon('chevron')}</span></button>`;
+}
+const message = (title, body, action) => `<div class="message"><h3>${title}</h3>${body ? `<p>${body}</p>` : ''}${action ? `<button class="btn" data-act="${action[0]}">${action[1]}</button>` : ''}</div>`;
+
+function listShell() {
+  const ios = S.platform === 'ios';
+  phone.className = 'phone ' + S.platform;
+  phone.innerHTML = `<div class="statusbar"><span>${ios ? '9:41' : '9:30'}</span><span class="right">5G <span class="bat"></span></span></div>
+  <div class="screen" id="screen">
+    ${S.offline ? `<div class="offline" role="alert">${icon('cloudOff', 16, '#fff')}Ngoại tuyến · hiển thị dữ liệu đã lưu trên máy</div>` : ''}
+    <div class="scroll" id="scroll">
+      ${ios ? `<div class="largetitle"><h2>Giải chạy</h2><p>Tất cả giải chạy tại Việt Nam</p></div>` : `<div class="appbar"><h2>RunDex</h2></div>`}
+      <div class="searchrow"><label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Tìm giải, địa điểm" aria-label="Tìm giải chạy" autocomplete="off" value="${esc(S.text)}"></label>
+        <button class="filterbtn" id="fbtn" data-act="sheet" aria-label="Bộ lọc">${icon('filter', 20, 'var(--ink)')}<span id="fbadge"></span></button></div>
+      <div class="chips" id="chips" role="group" aria-label="Lọc nhanh"></div>
+      <div class="listhead"><span class="l" id="count"></span><span class="r">Ngày gần nhất</span></div>
+      <div class="cards" id="cards"></div>
+    </div>
+    <div id="overlay"></div>
+  </div><div class="homebar"></div>`;
+  renderChips(); renderList(); renderBadge();
+  const q = document.getElementById('q');
+  q.addEventListener('input', () => { S.text = q.value; S.shown = PAGE; renderList(); });
+  document.getElementById('scroll').addEventListener('scroll', e => {
+    const el = e.target;
+    if (el.scrollTop + el.clientHeight > el.scrollHeight - 200 && S.sim === 'normal') { const n = results().length; if (S.shown < n) { S.shown += PAGE; renderList(); } }
+  });
+}
+const results = () => applyFilters({ ...S.filters, q: S.text });
+function renderBadge() {
+  const n = groupCount(S.filters);
+  document.getElementById('fbadge').outerHTML = `<span id="fbadge">${n > 0 ? `<span class="badge">${n}</span>` : ''}</span>`;
+  document.getElementById('fbtn').setAttribute('aria-label', n > 0 ? `Bộ lọc, đang dùng ${n} nhóm` : 'Bộ lọc');
+}
+function renderChips() {
+  document.getElementById('chips').innerHTML = CHIPS.map(([id, label]) => `<button class="chip" data-act="chip" data-id="${id}" aria-pressed="${chipActive(S.filters, id)}">${label}</button>`).join('');
+}
+function renderList() {
+  const cards = document.getElementById('cards'), count = document.getElementById('count');
+  if (S.sim === 'loading') { count.textContent = 'Sắp diễn ra'; cards.innerHTML = Array.from({ length: 5 }, () => '<div class="skeleton"></div>').join(''); return; }
+  if (S.sim === 'error') { count.textContent = 'Sắp diễn ra'; cards.innerHTML = message('Không tải được danh sách giải', 'Kiểm tra kết nối mạng rồi thử lại.', ['retry', 'Thử lại']); return; }
+  const all = S.sim === 'empty' ? [] : results();
+  count.textContent = `Sắp diễn ra · ${all.length} giải`;
+  if (!all.length) {
+    const has = Boolean(S.text.trim()) || hasChip(S.filters);
+    cards.innerHTML = message('Không có giải nào khớp', has ? 'Thử bỏ bớt bộ lọc hoặc đổi từ khóa.' : 'Chưa có giải nào sắp diễn ra.', has ? ['clearall', 'Xóa bộ lọc'] : null);
+    return;
+  }
+  cards.innerHTML = all.slice(0, S.shown).map(card).join('');
+}
+function renderSheet() {
+  const f = S.draft, t = activeTime(f), n = applyFilters({ ...f, q: S.text }).length;
+  const chip = (label, on, attrs) => `<button class="chip" aria-pressed="${on}" ${attrs}>${label}</button>`;
+  document.getElementById('overlay').innerHTML = S.sheet ? `<div class="scrim" data-act="close" aria-hidden="true"></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Bộ lọc"><div class="grab"></div>
+    <div class="sheethead"><h3>Bộ lọc</h3><button data-act="close" aria-label="Đóng">${icon('close', 22, 'var(--ink)')}</button></div>
+    <div class="groups">
+      <div class="group"><h4>Loại giải</h4><div class="opts">${chip('Tất cả', !f.type, 'data-act="d-type" data-v=""')}${chip('Trail', f.type === 'trail', 'data-act="d-type" data-v="trail"')}${chip('Đường nhựa', f.type === 'road', 'data-act="d-type" data-v="road"')}</div></div>
+      <div class="group"><h4>Cự ly</h4><div class="opts">${[['5', '5K'], ['10', '10K'], ['21', '21K'], ['42', '42K'], ['ultra', '50K+']].map(([id, l]) => chip(l, Boolean(f.distance && f.distance.includes(id)), `data-act="d-dist" data-v="${id}"`)).join('')}</div></div>
+      <div class="group"><h4>Thời gian</h4><div class="opts">${TIME_OPTIONS.map(([id, l]) => chip(l, t === id, `data-act="d-time" data-v="${id}"`)).join('')}</div></div>
+      <div class="group"><h4>Khu vực</h4><div class="opts">${[['north', 'Miền Bắc'], ['central', 'Miền Trung'], ['highlands', 'Tây Nguyên'], ['south', 'Miền Nam']].map(([id, l]) => chip(l, f.region === id, `data-act="d-region" data-v="${id}"`)).join('')}</div></div>
+      <div class="switchrow"><span>Chỉ giải còn mở đăng ký</span><button class="switch" role="switch" aria-checked="${Boolean(f.openOnly)}" aria-label="Chỉ giải còn mở đăng ký" data-act="d-open"></button></div>
+    </div>
+    <div class="foot"><button class="clear" data-act="d-clear">Xóa bộ lọc</button><button class="apply" data-act="apply">Xem ${n} giải</button></div></div>` : '';
+}
+function detailView(e) {
+  const st = statusBadge(e), tt = e.event_type === 'trail' ? 'trail' : e.event_type === 'road' ? 'road' : 'muted';
+  const place = [e.venue, e.province].filter(Boolean).join(', ');
+  const map = isHttp(e.map_url) ? e.map_url : mapUrl(e.venue, e.province);
+  const times = e.distances.map(d => d.start_time).filter(Boolean).sort();
+  const dl = deadlineLines(e.registration_deadline, e.days_left, e.status);
+  const NOTICE = { cancelled: ['Giải đã bị hủy.', 'danger'], postponed: ['Giải bị hoãn. Hãy xem trang ban tổ chức để biết thời gian mới.', 'warn'], completed: ['Giải đã diễn ra.', 'muted'] }[e.status];
+  const reg = isHttp(e.registration_url) ? e.registration_url : null, src = isHttp(e.source_url) ? e.source_url : null;
+  const canReg = e.status === 'registration_open' && reg, show = !['cancelled', 'completed'].includes(e.status), target = reg || src;
+  const verified = e.last_verified_at ? `Kiểm tra lần cuối ${fmtDate(e.last_verified_at.slice(0, 10))}.` : 'Chưa được kiểm chứng với trang ban tổ chức.';
+  phone.className = 'phone ' + S.platform;
+  phone.innerHTML = `<div class="statusbar"><span>${S.platform === 'ios' ? '9:41' : '9:30'}</span><span class="right">5G <span class="bat"></span></span></div>
+  <div class="screen"><div class="detailbar"><button class="back" data-act="back" aria-label="Quay lại danh sách">${icon('back', 24, 'currentColor')}${S.platform === 'ios' ? 'Giải chạy' : ''}</button>${S.platform === 'ios' ? '' : '<span class="ttl">Chi tiết giải</span>'}</div>
+  <div class="scroll"><div class="detail">
+    <div class="badges"><span class="pill t-${tt}">${typeLabel(e.event_type)}</span><span class="pill t-${st.tone}">${esc(st.label)}</span></div>
+    <h1>${esc(e.name)}</h1>
+    ${NOTICE ? `<div class="notice t-${NOTICE[1]}" role="alert">${NOTICE[0]}</div>` : ''}
+    <div class="row">${icon('calendar')}<div class="tx"><b>${esc(dateLine(e.start_date, e.end_date, times[0]))}</b></div></div>
+    ${place ? `<div class="row">${icon('pin')}<div class="tx"><b>${esc(place)}</b>${map ? `<a class="link" href="${esc(map)}" target="_blank" rel="noopener noreferrer">Xem bản đồ</a>` : ''}</div></div>` : ''}
+    ${e.organizer ? `<div class="row">${icon('info')}<div class="tx"><b>Ban tổ chức: ${esc(e.organizer)}</b></div></div>` : ''}
+    ${dl ? `<div class="deadline">${icon('clock', 20, 'var(--primary)')}<div><b>${esc(dl.title)}</b><span>${esc(dl.sub)}</span></div></div>` : ''}
+    ${e.distances.length ? `<div class="sec"><h3>Cự ly</h3>${e.distances.map(d => { const x = distanceDetails(d); return `<div class="dist"><span class="lab">${esc(d.label)}</span><div>${x.primary ? `<div class="p">${esc(x.primary)}</div>` : ''}${x.secondary ? `<div class="s">${esc(x.secondary)}</div>` : ''}${!x.primary && !x.secondary ? '<div class="s">Chưa có thông tin chi tiết</div>' : ''}</div></div>`; }).join('')}</div>` : ''}
+    <div class="source">${icon('info', 16)}<span>${e.source_name ? `Nguồn: ${esc(e.source_name)}. ` : ''}${verified} Thông tin có thể thay đổi, hãy xác nhận trên trang ban tổ chức.</span></div>
+  </div></div>
+  ${show && target ? `<div class="bottom"><a class="cta ${canReg ? '' : 'secondary'}" href="${esc(target)}" target="_blank" rel="noopener noreferrer">${canReg ? 'Đăng ký trên trang ban tổ chức' : reg ? 'Xem trang ban tổ chức' : 'Xem trang nguồn'}${icon('external', 18, canReg ? '#fff' : 'var(--primary)')}</a><div class="caption">${reg ? 'Mở trang của ban tổ chức trong trình duyệt' : 'Mở trang nguồn trong trình duyệt'}</div></div>` : ''}
+  </div><div class="homebar"></div>`;
+}
+function render() { if (S.screen === 'detail') detailView(EVENTS.find(e => e.slug === S.slug)); else { listShell(); renderSheet(); } }
+
+phone.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, v = el.dataset.v;
+  if (a === 'open') { S.screen = 'detail'; S.slug = el.dataset.slug; render(); }
+  else if (a === 'back') { S.screen = 'list'; render(); }
+  else if (a === 'chip') { S.filters = toggleChip(S.filters, el.dataset.id); S.shown = PAGE; renderChips(); renderList(); renderBadge(); }
+  else if (a === 'sheet') { S.draft = { ...S.filters }; S.sheet = true; renderSheet(); }
+  else if (a === 'close') { S.sheet = false; renderSheet(); }
+  else if (a === 'apply') { S.filters = S.draft; S.sheet = false; S.shown = PAGE; renderSheet(); renderChips(); renderList(); renderBadge(); }
+  else if (a === 'd-clear') { S.draft = {}; renderSheet(); }
+  else if (a === 'd-type') { S.draft = setType(S.draft, v ? (S.draft.type === v ? undefined : v) : undefined); renderSheet(); }
+  else if (a === 'd-dist') { S.draft = toggleDistance(S.draft, v); renderSheet(); }
+  else if (a === 'd-time') { S.draft = setTime(S.draft, activeTime(S.draft) === v ? undefined : v); renderSheet(); }
+  else if (a === 'd-region') { S.draft = setRegion(S.draft, S.draft.region === v ? undefined : v); renderSheet(); }
+  else if (a === 'd-open') { S.draft = setOpen(S.draft, !S.draft.openOnly); renderSheet(); }
+  else if (a === 'clearall') { S.text = ''; S.filters = {}; render(); }
+  else if (a === 'retry') { S.sim = 'normal'; document.querySelector('input[name=sim][value=normal]').checked = true; renderList(); }
+});
+document.querySelectorAll('input[name=platform]').forEach(r => r.addEventListener('change', () => { S.platform = r.value; render(); }));
+document.querySelectorAll('input[name=sim]').forEach(r => r.addEventListener('change', () => { S.sim = r.value; if (S.screen === 'list') renderList(); }));
+document.getElementById('offline').addEventListener('change', e => { S.offline = e.target.checked; if (S.screen === 'list') { render(); } });
+// Start state from the address, e.g. index.html#platform=android&screen=detail&slug=...&sheet=1&sim=error&offline=1&q=da%20lat
+const H = new URLSearchParams(location.hash.slice(1));
+if (H.get('static')) document.body.classList.add('static');
+if (H.get('platform') === 'android') { S.platform = 'android'; document.querySelector('input[name=platform][value=android]').checked = true; }
+if (['loading', 'error', 'empty'].includes(H.get('sim'))) { S.sim = H.get('sim'); document.querySelector(`input[name=sim][value=${S.sim}]`).checked = true; }
+if (H.get('offline')) { S.offline = true; document.getElementById('offline').checked = true; }
+if (H.get('q')) S.text = H.get('q');
+if (H.get('type')) S.filters = setType(S.filters, H.get('type'));
+if (H.get('screen') === 'detail' && EVENTS.some(e => e.slug === H.get('slug'))) { S.screen = 'detail'; S.slug = H.get('slug'); }
+if (H.get('sheet')) { S.draft = { ...S.filters, ...(H.get('draftType') ? { type: H.get('draftType') } : {}), ...(H.get('draftRegion') ? { region: H.get('draftRegion') } : {}) }; S.sheet = true; }
+render();
+}
+</script>
+</body>
+</html>

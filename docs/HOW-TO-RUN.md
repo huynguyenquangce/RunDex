@@ -32,6 +32,14 @@ docker version # must show a Client and a Server
 
 ---
 
+## Quick look without a phone: the HTML UI preview
+
+You can see (and click through) the screens in a normal browser before setting up anything else. Open `docs/ui-preview/index.html` (double-click it in Windows Explorer, or from WSL: `explorer.exe docs/ui-preview/index.html`). It works offline.
+
+It is an HTML replica of the app (same design tokens, texts and filter rules, with the 48 real events of the catalog snapshot), with a side panel to switch **iPhone / Android** and to simulate **loading, error, empty and offline** states. It is not the React Native app: use it to judge layout and flows, then check the real app in the steps below. How it is kept up to date: `docs/ui-preview/SYNC.md`.
+
+---
+
 ## 1. Get the code (inside the WSL filesystem)
 
 Keep the project in your WSL home, **not** under `/mnt/c/...` (the Windows drive is very slow for `npm`).
