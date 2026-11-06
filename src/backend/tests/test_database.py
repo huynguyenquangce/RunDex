@@ -109,3 +109,31 @@ def test_change_proposal_checks_reject_bad_status(db: Session) -> None:
     with pytest.raises(IntegrityError):
         db.commit()
     db.rollback()
+
+
+def test_catalog_export_round_trips_through_the_seed_loader(db: Session, tmp_path: Path) -> None:
+    from app.ingest.export import catalog_yaml
+
+    original = load_seed_file(FIXTURE_PATH)
+    seed_events(db, original)
+    out = tmp_path / "snapshot.yaml"
+    out.write_text(catalog_yaml(db), encoding="utf-8")
+
+    reloaded = load_seed_file(out)  # validates every field through the seed schema
+    assert {e.slug for e in reloaded} == {e.slug for e in original}
+    by_slug = {e.slug: e for e in reloaded}
+    for event in original:
+        again = by_slug[event.slug]
+        assert (again.name, again.start_date, again.status) == (
+            event.name,
+            event.start_date,
+            event.status,
+        )
+        assert [d.label for d in again.distances] == [d.label for d in event.distances]
+        assert str(again.registration_url) == str(event.registration_url)
+
+    db.execute(text("TRUNCATE events, distances RESTART IDENTITY CASCADE"))
+    db.commit()
+    db.expunge_all()  # forget the objects of the truncated rows
+    created, _ = seed_events(db, reloaded)
+    assert created == len(original)

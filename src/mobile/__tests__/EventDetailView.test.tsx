@@ -78,6 +78,7 @@ describe('<EventDetailView />', () => {
   it('falls back to the source page when there is no registration link', async () => {
     const onOpenUrl = jest.fn();
     await render(<EventDetailView event={{ ...EVENT, registration_url: null }} onOpenUrl={onOpenUrl} />);
+    expect(screen.getByText('Mở trang nguồn trong trình duyệt')).toBeTruthy();
     await fireEvent.press(screen.getByText('Xem trang nguồn'));
     expect(onOpenUrl).toHaveBeenCalledWith('https://vietnamtrailseries.com/trail-marathon/');
   });

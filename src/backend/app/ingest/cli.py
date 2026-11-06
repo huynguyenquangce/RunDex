@@ -9,6 +9,7 @@ import httpx
 from sqlalchemy import select
 
 from app.db import SessionLocal
+from app.ingest.export import catalog_yaml
 from app.ingest.fetch_service import fetch_source, is_due, pages_waiting_for_extraction
 from app.ingest.fetcher import USER_AGENT, Fetcher
 from app.ingest.pipeline import approve, event_name_for, pending_proposals, process_outbox, reject
@@ -145,6 +146,16 @@ def _cmd_review(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_export(args: argparse.Namespace) -> int:
+    with SessionLocal() as session:
+        text = catalog_yaml(session)
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8")
+    print(f"exported {text.count('- slug:')} events to {out}")
+    return 0
+
+
 def _cmd_decide(args: argparse.Namespace) -> int:
     action = approve if args.command == "approve" else reject
     with SessionLocal() as session:
@@ -186,6 +197,9 @@ def build_parser() -> argparse.ArgumentParser:
     fetch.add_argument("--force", action="store_true", help="ignore refresh_days")
     fetch.set_defaults(func=_cmd_fetch)
 
+    export = commands.add_parser("export", help="write the catalog to a YAML snapshot")
+    export.add_argument("--out", default="catalog/events.snapshot.yaml")
+    export.set_defaults(func=_cmd_export)
     for name, func, helptext in (
         ("run", _cmd_run, "one pass: sync sources, fetch, apply extractor results"),
         ("worker", _cmd_worker, "repeat `run` every N hours"),

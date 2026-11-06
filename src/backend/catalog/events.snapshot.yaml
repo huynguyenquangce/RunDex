@@ -1,0 +1,842 @@
+# RunDex catalog snapshot, exported 2026-11-06.
+# Events collected by the ingestion pipeline and reviewed by a person.
+# Facts only (name, date, place, distances, status), with the source of each event.
+# Load into an empty database: python -m app.seed catalog/events.snapshot.yaml
+events:
+- slug: lam-dong-trail-2026-da-lat
+  name: Lâm Đồng Trail 2026, Đà Lạt
+  event_type: trail
+  start_date: '2026-11-06'
+  province: Lâm Đồng
+  venue: TTC World, Thung Lũng Tình Yêu, Đà Lạt
+  status: registration_open
+  registration_url: https://ticket.irace.vn/lamdong-trail-2026
+  source_name: Linh Academy - trail calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail
+  last_verified_at: '2026-11-06T08:30:12.004171+00:00'
+  distances:
+  - label: 85K
+    distance_km: 85.0
+  - label: 55K
+    distance_km: 55.0
+  - label: 25K
+    distance_km: 25.0
+  - label: 15K
+    distance_km: 15.0
+  - label: 5K
+    distance_km: 5.0
+- slug: salonpas-run-2026
+  name: Salonpas Run 2026
+  event_type: road
+  start_date: '2026-11-08'
+  province: TP. Hồ Chí Minh
+  venue: Công viên Sáng tạo, TP. Thủ Đức
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.038460+00:00'
+  distances:
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: standard-chartered-marathon-di-san-ha-noi-2026
+  name: Standard Chartered Marathon Di sản Hà Nội 2026
+  event_type: road
+  start_date: '2026-11-08'
+  province: Hà Nội
+  status: registration_open
+  source_name: VPBank Hanoi Marathon
+  source_url: https://hanoi-marathon.com/
+  last_verified_at: '2026-11-06T08:24:42.057330+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: ca-mau-marathon-2026-cup-petrovietnam
+  name: Cà Mau Marathon 2026, cúp Petrovietnam
+  event_type: mixed
+  start_date: '2026-11-15'
+  province: Cà Mau
+  venue: Trung tâm hội nghị tỉnh Cà Mau
+  status: scheduled
+  source_name: HappyRun - marathon schedule
+  source_url: https://happyrun.vn/blogs/chaybo/giai-chay-bo-marathon
+  last_verified_at: '2026-11-06T08:30:12.163173+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+  - label: 2K
+    distance_km: 2.0
+- slug: quang-truc-half-marathon-2026
+  name: Quảng Trực Half Marathon 2026
+  event_type: road
+  start_date: '2026-11-15'
+  province: Lâm Đồng
+  venue: Xã Quảng Trực, Lâm Đồng
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.055410+00:00'
+  distances:
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+  - label: 1.5K
+    distance_km: 1.5
+- slug: trang-an-marathon-2026
+  name: Trang An Marathon 2026
+  event_type: road
+  start_date: '2026-11-15'
+  province: Ninh Bình
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.046707+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: tri-ton-cross-country-2026
+  name: Tri Tôn Cross Country 2026
+  event_type: trail
+  start_date: '2026-11-15'
+  province: An Giang
+  venue: Quảng trường Tri Tôn, An Giang
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.064082+00:00'
+  distances:
+  - label: 45K
+    distance_km: 45.0
+  - label: 21K
+    distance_km: 21.1
+  - label: 12K
+    distance_km: 12.0
+  - label: 5K
+    distance_km: 5.0
+- slug: giai-chay-quoc-te-vi-da-lat-xanh-2026
+  name: Giải chạy Quốc tế vì Đà Lạt Xanh 2026
+  event_type: road
+  start_date: '2026-11-22'
+  province: Lâm Đồng
+  venue: Đà Lạt, Lâm Đồng
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.080453+00:00'
+  distances:
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+  - label: 1.5K
+    distance_km: 1.5
+- slug: halong-bay-heritage-marathon-2026
+  name: Halong Bay Heritage Marathon 2026
+  event_type: road
+  start_date: '2026-11-22'
+  province: Quảng Ninh
+  venue: Hạ Long
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.072570+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: ultra-trail-cao-bang-2026
+  name: Ultra Trail Cao Bang 2026
+  event_type: trail
+  start_date: '2026-11-27'
+  end_date: '2026-11-29'
+  province: Cao Bằng
+  venue: Bản Giốc, Cao Bằng, Việt Nam
+  status: scheduled
+  source_name: Pace8 - Vietnam Trail Marathon 2027
+  source_url: https://pace8.vn/su-kien/vietnam-trail-marathon-2027
+  last_verified_at: '2026-11-06T08:30:11.778718+00:00'
+  distances:
+  - label: 160K
+    distance_km: 160.0
+  - label: 100K
+    distance_km: 100.0
+  - label: 70K
+    distance_km: 70.0
+  - label: 42K
+    distance_km: 42.2
+  - label: 25K
+    distance_km: 25.0
+  - label: 10K
+    distance_km: 10.0
+- slug: yen-tu-heritage-marathon-2026
+  name: Yên Tử Heritage Marathon 2026
+  event_type: road
+  start_date: '2026-11-28'
+  end_date: '2026-11-29'
+  province: Quảng Ninh
+  venue: Di sản Văn hóa Thế giới Yên Tử, tỉnh Quảng Ninh
+  status: scheduled
+  source_name: Pace8 - Vietnam Trail Marathon 2027
+  source_url: https://pace8.vn/su-kien/vietnam-trail-marathon-2027
+  last_verified_at: '2026-11-06T08:30:11.809834+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: dong-nai-marathon-2026
+  name: Đồng Nai Marathon 2026
+  event_type: road
+  start_date: '2026-11-29'
+  province: Đồng Nai
+  venue: Trị An, Đồng Nai
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.097231+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: vnexpress-marathon-hanoi-midnight-2026
+  name: VnExpress Marathon Hanoi Midnight 2026
+  event_type: road
+  start_date: '2026-11-29'
+  province: Hà Nội
+  venue: Hà Nội
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.089443+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: vung-tau-city-trail-2026
+  name: Vung Tau City Trail 2026
+  event_type: trail
+  start_date: '2026-11-29'
+  province: TP. Hồ Chí Minh
+  venue: Vũng Tàu, nay thuộc TP.HCM (trước thuộc Bà Rịa - Vũng Tàu)
+  status: registration_open
+  registration_url: https://ticket.irace.vn/vung-tau-city-trail-2026
+  source_name: Linh Academy - trail calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail
+  last_verified_at: '2026-11-06T08:30:12.012673+00:00'
+  distances:
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: hanh-trinh-tiep-suc-2026
+  name: Hành Trình Tiếp Sức 2026
+  event_type: road
+  start_date: '2026-12-06'
+  province: Hà Nội
+  venue: Vườn hoa phố đi bộ Trịnh Công Sơn, Tây Hồ, Hà Nội
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.130192+00:00'
+  distances:
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+  - label: 3K
+    distance_km: 3.0
+- slug: nghe-an-legacy-marathon-2026
+  name: Nghệ An Legacy Marathon 2026
+  event_type: road
+  start_date: '2026-12-06'
+  province: Nghệ An
+  venue: Cửa Lò, Nghệ An
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.114208+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: run-for-the-heart-chay-vi-trai-tim-2026
+  name: Run For The Heart, Chạy vì trái tim 2026
+  event_type: road
+  start_date: '2026-12-06'
+  province: Hà Nội
+  venue: Công viên Yên Sở, Hà Nội
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.138513+00:00'
+  distances:
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+  - label: 2K
+    distance_km: 2.0
+- slug: techcombank-hcmc-international-marathon-2026
+  name: Techcombank HCMC International Marathon 2026
+  organizer: Sunrise Events
+  event_type: road
+  start_date: '2026-12-06'
+  province: TP. Hồ Chí Minh
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.105975+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: thanh-hoa-marathon-2026
+  name: Thanh Hoá Marathon 2026
+  event_type: road
+  start_date: '2026-12-06'
+  province: Thanh Hóa
+  venue: Trung tâm TDTT Hạc Thành, Thanh Hoá
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.122555+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: prenn-trail-summit-2026-da-lat
+  name: Prenn Trail Summit 2026, Đà Lạt
+  event_type: trail
+  start_date: '2026-12-09'
+  province: Lâm Đồng
+  venue: Chân đèo Prenn, Đà Lạt
+  status: scheduled
+  registration_url: https://irace.vn/su-kien/prenn-trail-challenge
+  source_name: Linh Academy - trail calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail
+  last_verified_at: '2026-11-06T08:30:12.021298+00:00'
+  distances:
+  - label: 250K
+    distance_km: 250.0
+  - label: 187K
+    distance_km: 187.0
+  - label: 103K
+    distance_km: 103.0
+  - label: 55K
+    distance_km: 55.0
+  - label: 25K
+    distance_km: 25.0
+  - label: 10K
+    distance_km: 10.0
+  - label: 3K
+    distance_km: 3.0
+- slug: nha-trang-night-run-2026
+  name: Nha Trang Night Run 2026
+  event_type: road
+  start_date: '2026-12-12'
+  province: Khánh Hòa
+  venue: Quảng trường 2 Tháng 4, Nha Trang
+  status: registration_open
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.146682+00:00'
+  distances:
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: can-tho-heritage-marathon-2026
+  name: Cần Thơ Heritage Marathon 2026
+  organizer: DHA Vietnam
+  event_type: road
+  start_date: '2026-12-20'
+  province: TP. Cần Thơ
+  venue: Song Hau Park, quận Ninh Kiều, TP. Cần Thơ
+  status: scheduled
+  source_name: Linh Academy - race calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+  last_verified_at: '2026-11-06T08:30:12.155508+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: cuc-phuong-jungle-paths-2026
+  name: Cuc Phuong Jungle Paths 2026
+  event_type: trail
+  start_date: '2026-12-25'
+  end_date: '2026-12-27'
+  venue: VƯỜN QUỐC GIA CÚC PHƯƠNG
+  status: scheduled
+  source_name: Pace8 - Vietnam Trail Marathon 2027
+  source_url: https://pace8.vn/su-kien/vietnam-trail-marathon-2027
+  last_verified_at: '2026-11-06T08:30:11.789732+00:00'
+  distances:
+  - label: 100K
+    distance_km: 100.0
+  - label: 75K
+    distance_km: 75.0
+  - label: 42K
+    distance_km: 42.2
+  - label: 25K
+    distance_km: 25.0
+  - label: 10K
+    distance_km: 10.0
+- slug: son-tra-city-trail-2026-da-nang
+  name: Sơn Trà City Trail 2026, Đà Nẵng
+  event_type: trail
+  start_date: '2026-12-27'
+  province: TP. Đà Nẵng
+  venue: Bán đảo Sơn Trà, Đà Nẵng
+  status: registration_open
+  registration_url: https://ticket.irace.vn/son-tra-city-trail-2026
+  source_name: Linh Academy - trail calendar 2026-2027
+  source_url: https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail
+  last_verified_at: '2026-11-06T08:30:12.029746+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: vnexpress-hai-phong-2026
+  name: Vnexpress Hải Phòng 2026
+  event_type: road
+  start_date: '2026-12-27'
+  province: Hải Phòng
+  venue: Hải Phòng
+  status: scheduled
+  source_name: Pace8 - Vietnam Trail Marathon 2027
+  source_url: https://pace8.vn/su-kien/vietnam-trail-marathon-2027
+  last_verified_at: '2026-11-06T08:30:11.800093+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: tien-phong-marathon-dien-bien-discovery-2027
+  name: Tiền Phong Marathon – Điện Biên Discovery 2027
+  organizer: Báo Tiền Phong
+  event_type: road
+  start_date: '2027-01-02'
+  province: Điện Biên
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.821122+00:00'
+  distances:
+  - label: 48K
+    distance_km: 48.0
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: khoi-song-binh-minh-2027
+  name: Khơi Sóng Bình Minh 2027
+  event_type: road
+  start_date: '2027-01-03'
+  province: TP. Hồ Chí Minh
+  venue: Quảng trường Tam Thắng, phường Vũng Tàu, TP.HCM
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.831431+00:00'
+  distances:
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: vietnam-highlands-trail-by-utmb-2027
+  name: Vietnam Highlands Trail by UTMB 2027
+  event_type: trail
+  start_date: '2027-01-08'
+  province: Lâm Đồng
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.841367+00:00'
+  distances:
+  - label: 100K
+    distance_km: 100.0
+  - label: 50K
+    distance_km: 50.0
+  - label: 20K
+    distance_km: 20.0
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: bac-ninh-legacy-marathon-2027
+  name: Bắc Ninh Legacy Marathon 2027
+  event_type: road
+  start_date: '2027-01-10'
+  province: Bắc Ninh
+  venue: Quảng trường Trung tâm Văn hóa Kinh Bắc
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.850333+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: mang-den-ultra-trail-2027
+  name: Măng Đen Ultra Trail 2027
+  event_type: trail
+  start_date: '2027-01-15'
+  province: Quảng Ngãi
+  venue: xã Măng Đen
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.859327+00:00'
+  distances:
+  - label: 100K
+    distance_km: 100.0
+  - label: 70K
+    distance_km: 70.0
+  - label: 50K
+    distance_km: 50.0
+  - label: 25K
+    distance_km: 25.0
+  - label: 15K
+    distance_km: 15.0
+- slug: dat-thep-city-trail-2027
+  name: Đất Thép City Trail 2027
+  event_type: mixed
+  start_date: '2027-01-23'
+  province: TP. Hồ Chí Minh
+  venue: xã Tân An Hội, TP.HCM
+  status: registration_open
+  registration_deadline: '2027-01-10'
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.868824+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 7K
+    distance_km: 7.0
+- slug: tet-run-mien-nam-2027
+  name: Tết Run Miền Nam 2027
+  event_type: road
+  start_date: '2027-01-24'
+  province: TP. Hồ Chí Minh
+  venue: Vinhomes Grand Park
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.877410+00:00'
+  distances:
+  - label: 21K
+    distance_km: 21.1
+- slug: minh-dam-discovery-marathon-2027
+  name: Minh Đạm Discovery Marathon 2027
+  event_type: road
+  start_date: '2027-02-16'
+  venue: Khu vực Minh Đạm
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.885310+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: bac-son-marathon-na-nhem-festival-2027
+  name: Bắc Sơn Marathon – Ná Nhèm Festival 2027
+  event_type: road
+  start_date: '2027-02-21'
+  province: Lạng Sơn
+  venue: Sân Trung tâm hành chính xã, Làng du lịch cộng đồng Quỳnh Sơn
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.893978+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+  - label: 21K
+    distance_km: 21.1
+  - label: 15K
+    distance_km: 15.0
+  - label: 7K
+    distance_km: 7.0
+- slug: dinh-harvest-spring-2027
+  name: Dinh Harvest Spring 2027
+  organizer: Trail Station
+  event_type: trail
+  start_date: '2027-02-27'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.902965+00:00'
+  distances: []
+- slug: mang-den-lala-trail-2027
+  name: Măng Đen LaLa Trail 2027
+  event_type: trail
+  start_date: '2027-03-05'
+  province: Quảng Ngãi
+  venue: Măng Đen
+  status: registration_open
+  registration_deadline: '2027-02-20'
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.910067+00:00'
+  distances:
+  - label: 50K
+    distance_km: 50.0
+  - label: 25K
+    distance_km: 25.0
+  - label: 10K
+    distance_km: 10.0
+  - label: 5K
+    distance_km: 5.0
+- slug: ultra-asia-race-2027
+  name: Ultra ASIA Race 2027
+  event_type: trail
+  start_date: '2027-03-08'
+  venue: Mai Châu, Tây Bắc Việt Nam
+  status: registration_open
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.918286+00:00'
+  distances:
+  - label: 160K
+    distance_km: 160.0
+- slug: dalat-ultra-trail-2027
+  name: Dalat Ultra Trail 2027
+  event_type: trail
+  start_date: '2027-03-19'
+  province: Lâm Đồng
+  venue: Thung Lũng Tình Yêu, Đà Lạt
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.926377+00:00'
+  distances:
+  - label: 160K
+    distance_km: 160.0
+  - label: 110K
+    distance_km: 110.0
+  - label: 75K
+    distance_km: 75.0
+  - label: 50K
+    distance_km: 50.0
+  - label: 21K
+    distance_km: 21.1
+  - label: 15K
+    distance_km: 15.0
+  - label: 5K
+    distance_km: 5.0
+- slug: manulife-danang-international-marathon-2027
+  name: Manulife Danang International Marathon 2027
+  event_type: road
+  start_date: '2027-03-21'
+  province: TP. Đà Nẵng
+  venue: East Sea Park
+  status: registration_open
+  registration_url: https://in.njuko.com/dananginternationalmarathon2027?currentPage=select-competition
+  source_name: Marathon Scout - Danang
+  source_url: https://marathonscout.com/races/danang-international-marathon
+  last_verified_at: '2026-11-06T08:30:11.759140+00:00'
+  distances:
+  - label: 42K
+    distance_km: 42.2
+- slug: tien-phong-marathon-2027
+  name: Tiền Phong Marathon 2027
+  organizer: Báo Tiền Phong
+  event_type: road
+  start_date: '2027-03-21'
+  province: Bắc Ninh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.936062+00:00'
+  distances: []
+- slug: the-explorer-trail-2027
+  name: The Explorer Trail 2027
+  organizer: Trail Station
+  event_type: trail
+  start_date: '2027-04-17'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.943897+00:00'
+  distances: []
+- slug: dinh-discovery-open-2027
+  name: Dinh Discovery Open 2027
+  event_type: trail
+  start_date: '2027-05-21'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.952899+00:00'
+  distances: []
+- slug: summer-symphony-trail-2027
+  name: Summer Symphony Trail 2027
+  event_type: trail
+  start_date: '2027-06-26'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.961259+00:00'
+  distances: []
+- slug: kiss-the-rain-2027
+  name: Kiss The Rain 2027
+  event_type: trail
+  start_date: '2027-07-24'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.969249+00:00'
+  distances: []
+- slug: harvest-moon-breaking-2027
+  name: Harvest Moon Breaking 2027
+  event_type: trail
+  start_date: '2027-08-28'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.976315+00:00'
+  distances: []
+- slug: dinh-harvest-flowers-2027
+  name: Dinh Harvest Flowers 2027
+  event_type: trail
+  start_date: '2027-10-16'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.983225+00:00'
+  distances: []
+- slug: that-son-trail-2027
+  name: Thất Sơn Trail 2027
+  organizer: Trail Station
+  event_type: trail
+  start_date: '2027-11-20'
+  province: An Giang
+  venue: vùng Thất Sơn
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.989860+00:00'
+  distances: []
+- slug: dinh-harvest-final-2027
+  name: Dinh Harvest Final 2027
+  organizer: Trail Station
+  event_type: trail
+  start_date: '2027-12-25'
+  province: TP. Hồ Chí Minh
+  venue: Núi Dinh
+  status: scheduled
+  source_name: TikPik - 2027 race calendar
+  source_url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+  last_verified_at: '2026-11-06T08:30:11.996400+00:00'
+  distances: []

@@ -67,16 +67,17 @@ You can also open <http://localhost:8000/docs> in the Windows browser.
 
 The database starts **empty** and the app will say "Chưa có giải nào sắp diễn ra". Pick one option.
 
-### Option A (2 minutes): load the unverified test fixture
-In the second terminal:
+### Option A (1 minute, recommended): load the catalog snapshot
+`src/backend/catalog/events.snapshot.yaml` holds the real events collected and reviewed with the ingestion pipeline (48 events, facts and sources only). In the second terminal:
 ```bash
 cd ~/RunDex/src
-docker compose cp backend/tests/fixtures/events.fixture.yaml api:/tmp/events.yaml
-docker compose exec api python -m app.seed /tmp/events.yaml
+docker compose exec api python -m app.seed catalog/events.snapshot.yaml
 ```
-**Check:** `seed: 10 created ...`, then `curl "http://localhost:8000/v1/events?limit=3"` returns events. (The fixture dates are 2026 to 2027; events already in the past are hidden by default.)
+If it says the file is missing, the API image was built before the snapshot existed: run `docker compose up --build` again (step 2) and retry.
 
-### Option B (about 20 minutes): run the real ingestion pipeline
+**Check:** `seed: 48 created ...`, then `curl "http://localhost:8000/v1/events?limit=3"` returns events. Events whose date has passed are hidden by default, so the number shown in the app shrinks over time; refresh the snapshot with Option B and `python -m app.ingest export` (it writes `catalog/events.snapshot.yaml`).
+
+### Option B (about 20 minutes): run the real ingestion pipeline yourself
 Downloads event pages from the registered sources and builds the catalog. The AI extraction step uses **Claude Code**.
 
 1. Set up the backend tools once:

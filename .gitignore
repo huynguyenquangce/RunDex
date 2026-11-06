@@ -23,3 +23,6 @@ build/
 
 # Ingestion working files (fetched page text is not committed)
 src/backend/data/
+
+# Local-only helpers (not part of the submission)
+.local/

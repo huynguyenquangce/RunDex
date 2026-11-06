@@ -131,7 +131,9 @@ export function EventDetailView({ event, bottomInset = 0, onOpenUrl }: Props) {
             </Text>
             <Icon name="external" size={18} color={canRegister ? colors.onPrimary : colors.primary} />
           </Pressable>
-          <Text style={styles.caption}>Mở trang của ban tổ chức trong trình duyệt</Text>
+          <Text style={styles.caption}>
+            {link ? 'Mở trang của ban tổ chức trong trình duyệt' : 'Mở trang nguồn trong trình duyệt'}
+          </Text>
         </View>
       ) : null}
     </View>

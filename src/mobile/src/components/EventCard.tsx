@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   day: { color: colors.primary, fontSize: 22, fontWeight: '700' },
   month: { color: colors.primary, fontSize: fontSize.caption - 1, fontWeight: '500' },
   info: { flex: 1, gap: 6 },
-  badges: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   name: { color: colors.ink, fontSize: fontSize.body + 1, fontWeight: '600' },
   place: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   meta: { color: colors.muted, fontSize: fontSize.small, flexShrink: 1 },
