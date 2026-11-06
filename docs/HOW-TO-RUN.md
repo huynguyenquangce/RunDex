@@ -48,6 +48,24 @@ npm start                        # Expo dev server; open in Expo Go or press a /
 ```
 API address: set `EXPO_PUBLIC_API_URL` (Android emulator reaches the host at `http://10.0.2.2:8000`).
 
+## See the app on a phone (iPhone or Android, Windows or macOS laptop)
+This is the development flow (no native build): the laptop runs the backend, the database and the Expo dev server (Metro); the phone runs **Expo Go** on the same network.
+
+1. Install **Expo Go** (App Store / Google Play). Its SDK version must match the project (Expo SDK 58).
+2. Laptop: start the backend with `docker compose up` in `src`, and find the laptop's LAN IP (`ipconfig` on Windows, IPv4 of the Wi-Fi adapter).
+3. Laptop, in `src/mobile` (PowerShell example):
+   ```powershell
+   npm install
+   $env:EXPO_PUBLIC_API_URL="http://<LAN IP>:8000"
+   npx expo start
+   ```
+4. Phone on the same Wi-Fi: scan the QR code (iPhone: Camera app; Android: inside Expo Go). Allow ports 8081 (Metro) and 8000 (API) in the laptop firewall when asked.
+
+Notes
+- On the phone, `localhost` is the phone itself, so `EXPO_PUBLIC_API_URL` must be the laptop's IP.
+- iOS cannot be simulated on Windows; use a real iPhone with Expo Go. An installable build (APK/IPA through EAS) is out of scope for now.
+- Some company Wi-Fi networks block devices from reaching each other. If the QR code does not connect, use a phone hotspot or a home network. `npx expo start --tunnel` helps Metro only; the API must still be reachable.
+
 ## Test and check
 ```bash
 cd src/backend && pytest && ruff check . && ruff format --check .
