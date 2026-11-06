@@ -76,3 +76,9 @@ Run: 17 sources -> 32 pages -> 4 Haiku extractor agents -> 242 candidates. Outco
 - Practical findings: only 5 of 107 pending events carry a registration link and about half have distances, because listing pages rarely give them; official event pages (tier 2) are what fill those fields.
 - Extractor agent: in this run the agents were general-purpose Haiku agents following `.claude/agents/event-extractor.md` (the named agent is only loaded when a Claude Code session starts, so restart to use it by name). Two agents reported that quotes were not machine-checked: the pipeline check is the real test (24 dates were caught).
 
+## Compact flow and automation (2026-11-06)
+Everyday flow: `run` -> (extractor, only when pages are waiting) -> `review` / `approve`. `run` = sync sources + fetch due pages + apply extractor results; `worker` repeats it every N hours.
+What is automatic today: discovery, fetching, change detection, validation, deduplication, applying low-risk changes from official sources. What still needs a person: the extraction step (until an `api` extractor provider exists, which needs an Anthropic API key) and the review of risky changes.
+First review (A + C): 47 high-confidence creates approved after looking at the list; 8 non-Vietnam events and 3 duplicates rejected; one held (VTM 2027 from iRace has odd distances). Catalog: 48 upcoming events. 53 proposals remain pending (mostly dates whose year was inferred).
+Open items: `api` extractor provider, Compose `worker` service, more tier-2 sources.
+

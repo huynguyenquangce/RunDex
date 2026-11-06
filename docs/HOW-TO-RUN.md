@@ -49,18 +49,15 @@ npm start                        # Expo dev server; open in Expo Go or press a /
 API address: set `EXPO_PUBLIC_API_URL` (Android emulator reaches the host at `http://10.0.2.2:8000`).
 
 ## Fill the catalog (ingestion)
-The database starts empty. With `DATABASE_URL` set, in `src/backend`:
+The database starts empty. With `DATABASE_URL` set, in `src/backend`, the everyday flow is three commands:
 ```bash
-python -m app.ingest sources sync            # load config/sources.yaml
-python -m app.ingest fetch --limit 6         # download pages into data/inbox (polite, robots.txt)
-# extract: ask Claude Code to run the event-extractor agent on data/inbox (writes data/outbox)
-python -m app.ingest apply                   # verify, normalize, validate, apply or queue
-python -m app.ingest review --summary        # what waits for a decision
-python -m app.ingest review --source tikpik-2027 --limit 10
-python -m app.ingest approve 12 15 20        # or: approve --all --kind create --min-confidence 0.85
-python -m app.ingest reject 14
+python -m app.ingest run                      # sync sources, fetch due pages, apply extractor results
+#   -> if it says pages wait for the extractor: ask Claude Code to run the event-extractor agent
+#      on data/inbox (it writes data/outbox), then run `run` again
+python -m app.ingest review --summary         # what waits for a decision
+python -m app.ingest approve 12 15 20         # or: approve --all --kind create --min-confidence 0.85
 ```
-`data/` is git-ignored (fetched page text is not committed).
+Other commands: `fetch --limit 6 [--source ID] [--force]`, `apply`, `review --source ID --limit 10`, `reject 14`, `sources list`, and `worker --interval-hours 24` (repeats `run`). `data/` is git-ignored (fetched page text is not committed). Bulk approval stamps `last_verified_at`, so look at what you approve.
 
 ## See the app on a phone (iPhone or Android, Windows or macOS laptop)
 This is the development flow (no native build): the laptop runs the backend, the database and the Expo dev server (Metro); the phone runs **Expo Go** on the same network.

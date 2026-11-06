@@ -75,6 +75,16 @@ def _write_inbox(data_dir: Path, document: RawDocument) -> Path:
     return inbox_file
 
 
+def pages_waiting_for_extraction(data_dir: Path | None = None) -> list[str]:
+    """Hashes of fetched pages that have no extractor result yet."""
+    data_dir = data_dir or settings.ingest_data_dir
+    inbox, outbox = data_dir / "inbox", data_dir / "outbox"
+    if not inbox.exists():
+        return []
+    done = {p.stem for p in outbox.glob("*.json")} if outbox.exists() else set()
+    return sorted(p.stem for p in inbox.glob("*.json") if p.stem not in done)
+
+
 def is_due(source: Source, now: datetime) -> bool:
     if source.last_fetched_at is None:
         return True

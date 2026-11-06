@@ -1,6 +1,7 @@
 """Command line entry point: python -m app.ingest <command>."""
 
 import argparse
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -8,7 +9,7 @@ import httpx
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.ingest.fetch_service import fetch_source, is_due
+from app.ingest.fetch_service import fetch_source, is_due, pages_waiting_for_extraction
 from app.ingest.fetcher import USER_AGENT, Fetcher
 from app.ingest.pipeline import approve, event_name_for, pending_proposals, process_outbox, reject
 from app.ingest.sources import DEFAULT_SOURCES_PATH, load_sources, sync_sources
@@ -31,7 +32,7 @@ def _cmd_sources_list(_: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_fetch(args: argparse.Namespace) -> int:
+def _run_fetch(source: str | None, limit: int, delay: float, force: bool) -> None:
     now = datetime.now(UTC)
     with (
         SessionLocal() as session,
@@ -39,22 +40,56 @@ def _cmd_fetch(args: argparse.Namespace) -> int:
             headers={"User-Agent": USER_AGENT}, timeout=20.0, follow_redirects=True
         ) as client,
     ):
-        fetcher = Fetcher(client, delay_seconds=args.delay)
+        fetcher = Fetcher(client, delay_seconds=delay)
         query = select(Source).where(Source.enabled).order_by(Source.tier, Source.id)
-        if args.source:
-            query = query.where(Source.id == args.source)
-        sources = [s for s in session.scalars(query) if args.force or is_due(s, now)]
+        if source:
+            query = query.where(Source.id == source)
+        sources = [s for s in session.scalars(query) if force or is_due(s, now)]
         if not sources:
-            print("nothing due (use --force to fetch anyway)")
-        for source in sources:
-            report = fetch_source(session, source, fetcher, limit=args.limit, now=now)
+            print("fetch: nothing due (use --force to fetch anyway)")
+        for src in sources:
+            report = fetch_source(session, src, fetcher, limit=limit, now=now)
             print(
-                f"{source.id:<24} discovered={report.discovered} "
+                f"fetch: {src.id:<24} discovered={report.discovered} "
                 f"new_or_changed={report.new_or_changed} unchanged={report.unchanged} "
                 f"skipped={len(report.skipped)}"
             )
             for line in report.skipped[:3]:
                 print(f"    skipped: {line}")
+
+
+def _cmd_fetch(args: argparse.Namespace) -> int:
+    _run_fetch(args.source, args.limit, args.delay, args.force)
+    return 0
+
+
+def _cmd_run(args: argparse.Namespace) -> int:
+    """One pass of the whole pipeline: sync sources, fetch, apply what the extractor produced."""
+    with SessionLocal() as session:
+        created, updated = sync_sources(session, load_sources(DEFAULT_SOURCES_PATH))
+        print(f"sources: {created} created, {updated} updated")
+    _run_fetch(None, args.limit, args.delay, args.force)
+    waiting = pages_waiting_for_extraction()
+    _cmd_apply(args)
+    if waiting:
+        print(
+            f"extract: {len(waiting)} fetched page(s) wait for the extractor. Ask Claude Code to "
+            "run the event-extractor agent on data/inbox, then run `run` again (or `apply`)."
+        )
+    with SessionLocal() as session:
+        print(f"review: {len(pending_proposals(session))} proposal(s) waiting for a decision")
+    return 0
+
+
+def _cmd_worker(args: argparse.Namespace) -> int:
+    """Run `run` forever, every N hours. Stop with Ctrl+C."""
+    try:
+        while True:
+            print(f"--- worker run at {datetime.now(UTC).isoformat(timespec='seconds')}")
+            _cmd_run(args)
+            time.sleep(args.interval_hours * 3600)
+    except KeyboardInterrupt:
+        print("worker stopped")
     return 0
 
 
@@ -151,6 +186,17 @@ def build_parser() -> argparse.ArgumentParser:
     fetch.add_argument("--force", action="store_true", help="ignore refresh_days")
     fetch.set_defaults(func=_cmd_fetch)
 
+    for name, func, helptext in (
+        ("run", _cmd_run, "one pass: sync sources, fetch, apply extractor results"),
+        ("worker", _cmd_worker, "repeat `run` every N hours"),
+    ):
+        runner = commands.add_parser(name, help=helptext)
+        runner.add_argument("--limit", type=int, default=10, help="max pages per source")
+        runner.add_argument("--delay", type=float, default=2.0)
+        runner.add_argument("--force", action="store_true", help="ignore refresh_days")
+        if name == "worker":
+            runner.add_argument("--interval-hours", type=float, default=24.0)
+        runner.set_defaults(func=func)
     commands.add_parser("apply", help="process data/outbox into the catalog").set_defaults(
         func=_cmd_apply
     )

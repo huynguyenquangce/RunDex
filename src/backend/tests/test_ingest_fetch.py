@@ -257,3 +257,15 @@ def test_wrap_for_reading_only_changes_whitespace() -> None:
     wrapped = wrap_for_reading("ngắn\n" + long_line)
     assert max(len(line) for line in wrapped.split("\n")) <= 400
     assert " ".join(wrapped.split()) == " ".join(("ngắn " + long_line).split())
+
+
+def test_pages_waiting_for_extraction(tmp_path: Path) -> None:
+    from app.ingest.fetch_service import pages_waiting_for_extraction
+
+    assert pages_waiting_for_extraction(tmp_path) == []
+    (tmp_path / "inbox").mkdir()
+    for name in ("a", "b", "c"):
+        (tmp_path / "inbox" / f"{name}.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "outbox").mkdir()
+    (tmp_path / "outbox" / "b.json").write_text("{}", encoding="utf-8")
+    assert pages_waiting_for_extraction(tmp_path) == ["a", "c"]
