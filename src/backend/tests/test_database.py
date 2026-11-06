@@ -30,12 +30,17 @@ def test_unaccent_handles_vietnamese(db: Session) -> None:
 
 
 def test_search_text_is_generated_without_diacritics(db: Session) -> None:
-    db.add(_event(name="Dalat Ultra Trail", province="Lâm Đồng", organizer="Đà Lạt Club"))
+    db.add(
+        _event(
+            name="Dalat Ultra Trail", province="Lâm Đồng", venue="Mộc Châu", organizer="Đà Lạt Club"
+        )
+    )
     db.commit()
     stored = db.scalar(select(Event.search_text))
     assert stored is not None
     assert "lam dong" in stored
     assert "da lat club" in stored
+    assert "moc chau" in stored
 
 
 @pytest.mark.parametrize("field,value", [("event_type", "swim"), ("status", "unknown")])

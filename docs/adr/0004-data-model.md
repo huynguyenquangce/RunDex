@@ -19,7 +19,7 @@ Every public value can be traced to a source and time; the detail page shows sou
 
 ## Amendments (2026-11-06, step 2 implementation)
 - `Event` also carries `registration_deadline` (event-level, shown on the detail screen); per-distance deadlines stay on `Distance`.
-- `Event.search_text` is a generated column `lower(f_unaccent(name || province || organizer))` with a trigram GIN index; `f_unaccent` is an IMMUTABLE wrapper around `unaccent` so it can back a generated column.
+- `Event.search_text` is a generated column `lower(f_unaccent(name || province || venue || organizer))` with a trigram GIN index; `f_unaccent` is an IMMUTABLE wrapper around `unaccent` so it can back a generated column.
 - Enumerations are `VARCHAR` plus CHECK constraints (not PostgreSQL enums) to keep migrations simple.
 - `registration_url` is nullable: the app hides the registration action when it is missing.
 - `distance_km` is `NUMERIC(6,2)` (marathon = 42.2, half = 21.1); the label ("42K") is what users see.

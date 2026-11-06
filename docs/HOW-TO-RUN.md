@@ -32,6 +32,14 @@ alembic upgrade head          # create/upgrade the schema
 python -m app.seed            # load seed/events.sample.yaml (SAMPLE, unverified data)
 ```
 
+## API (step 3)
+```bash
+curl "http://localhost:8000/v1/events?q=da%20lat&type=trail&limit=10"
+curl "http://localhost:8000/v1/events?distance=42&distance=ultra&region=south&open_only=true"
+curl "http://localhost:8000/v1/events/vietnam-trail-marathon-2027"
+```
+Interactive docs: http://localhost:8000/docs. Parameters of `GET /v1/events`: `q` (every word must match; diacritics and case ignored), `type` (road|trail|mixed), `distance` (repeatable: 5, 10, 21, 42, ultra = 50 km and above), `region` (north|central|highlands|south), `from`/`to` (dates), `open_only`, `include_past`, `limit` (1-50, default 20), `cursor` (from `next_cursor`). The response has `items`, `next_cursor`, `total` (matches for the filters, used for "Show N events") and `last_updated_at`. The contract is committed in `src/openapi/openapi.json` (regenerate with `python -m app.export_openapi` in `src/backend`; CI fails if it is stale).
+
 ## Mobile app
 ```bash
 cd src/mobile

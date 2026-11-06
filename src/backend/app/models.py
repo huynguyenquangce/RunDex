@@ -70,7 +70,7 @@ class Event(Base):
         Text,
         Computed(
             "lower(f_unaccent(name || ' ' || coalesce(province, '') || ' ' "
-            "|| coalesce(organizer, '')))",
+            "|| coalesce(venue, '') || ' ' || coalesce(organizer, '')))",
             persisted=True,
         ),
     )

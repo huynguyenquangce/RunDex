@@ -2,7 +2,7 @@
 
 Status: accepted by the owner, 2026-11-06 (see ADR 0006). Coding starts 2026-11-13 (challenge window). Figma work for additional screens is postponed. Items marked (confirm) are proposals awaiting the owner's decision.
 
-Progress: step 1 (scaffold, CI skeleton) done and pushed on 2026-11-06. First CI run: backend and mobile green; Security (gitleaks) red, caused by placeholder DB passwords, handled with .gitleaks.toml (to be confirmed by the next run). Step 2 (schema, Alembic migration 0001, seed loader and 10 sample events, tests) written 2026-11-06: ruff and non-DB tests pass locally; database tests need PostgreSQL and run in GitHub Actions (REQUIRE_DB=1) because the dev machine has no Docker access yet.
+Progress: step 1 (scaffold, CI skeleton) done and pushed on 2026-11-06. First CI run: backend and mobile green; Security (gitleaks) red, caused by placeholder DB passwords, handled with .gitleaks.toml (to be confirmed by the next run). Step 3 (list/detail API, keyset pagination, filters, OpenAPI contract, tests) written 2026-11-06. Step 2 (schema, Alembic migration 0001, seed loader and 10 sample events, tests) written 2026-11-06: ruff and non-DB tests pass locally; database tests need PostgreSQL and run in GitHub Actions (REQUIRE_DB=1) because the dev machine has no Docker access yet.
 
 ## Goal
 A working mobile app (iOS + Android, Expo) backed by a real API and PostgreSQL that shows the event list with search and filters, and an event detail screen with a link to the organizer's registration page. Verified by tests and GitHub Actions. Ingestion (ADR 0003) comes after.
