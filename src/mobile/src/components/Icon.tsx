@@ -26,6 +26,19 @@ const ICONS: Record<string, ReactElement> = {
       <Path d="M16 3v4M8 3v4M3 10h18" />
     </>
   ),
+  clock: (
+    <>
+      <Circle cx="12" cy="12" r="9" />
+      <Path d="M12 7v5l3 2" />
+    </>
+  ),
+  info: (
+    <>
+      <Circle cx="12" cy="12" r="9" />
+      <Path d="M12 11v5M12 8h.01" />
+    </>
+  ),
+  external: <Path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />,
   cloudOff: <Path d="M3 3l18 18M9 5a6 6 0 0 1 10 4h1a4 4 0 0 1 2 7M6 9a5 5 0 0 0-1 10h11" />,
 };
 

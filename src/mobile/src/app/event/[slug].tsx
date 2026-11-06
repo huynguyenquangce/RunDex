@@ -1,63 +1,51 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ApiError } from '@/api/client';
 import { eventQuery } from '@/api/events';
-import { formatDate, statusLabel } from '@/lib/format';
-import { colors, fontSize, radius, spacing } from '@/theme/tokens';
+import { EventDetailView } from '@/components/EventDetailView';
+import { Message, SkeletonCards } from '@/components/ListStates';
+import { isHttpUrl } from '@/lib/format';
+import { colors, spacing } from '@/theme/tokens';
 
-// Step 4: minimal detail so deep links and navigation work end to end.
-// The designed Event Detail screen is built in step 6.
 export default function EventDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
+  const insets = useSafeAreaInsets();
   const query = useQuery(eventQuery(slug));
 
+  const openUrl = (url: string) => {
+    if (!isHttpUrl(url)) return;
+    Linking.openURL(url).catch(() =>
+      Alert.alert('Không mở được liên kết', 'Hãy thử lại hoặc mở trang ban tổ chức bằng trình duyệt.'),
+    );
+  };
+
+  if (query.data) {
+    return <EventDetailView event={query.data} bottomInset={insets.bottom} onOpenUrl={openUrl} />;
+  }
   if (query.isPending) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.primary} />
+      <View style={styles.padded}>
+        <SkeletonCards count={3} />
       </View>
     );
   }
-  if (!query.data) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.muted}>Không tìm thấy giải này.</Text>
-      </View>
-    );
-  }
-
-  const event = query.data;
+  const notFound = query.error instanceof ApiError && query.error.status === 404;
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{event.name}</Text>
-      <Text style={styles.muted}>
-        {formatDate(event.start_date)} · {event.province ?? 'Việt Nam'} · {statusLabel(event.status)}
-      </Text>
-      {event.distances.map((distance) => (
-        <Text key={distance.label} style={styles.body}>
-          {distance.label}
-        </Text>
-      ))}
-      {event.registration_url ? (
-        <Pressable
-          accessibilityRole="link"
-          onPress={() => Linking.openURL(event.registration_url!)}
-          style={styles.cta}
-        >
-          <Text style={styles.ctaText}>Đăng ký trên trang ban tổ chức</Text>
-        </Pressable>
-      ) : null}
-    </ScrollView>
+    <View style={styles.center}>
+      <Message
+        title={notFound ? 'Không tìm thấy giải này' : 'Không tải được thông tin giải'}
+        body={notFound ? 'Giải có thể đã bị gỡ khỏi danh sách.' : 'Kiểm tra kết nối mạng rồi thử lại.'}
+        actionLabel={notFound ? undefined : 'Thử lại'}
+        onAction={notFound ? undefined : () => void query.refetch()}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  container: { padding: spacing.lg, gap: spacing.md },
-  title: { color: colors.ink, fontSize: fontSize.large, fontWeight: '700' },
-  muted: { color: colors.muted, fontSize: fontSize.body },
-  body: { color: colors.ink, fontSize: fontSize.body },
-  cta: { backgroundColor: colors.primary, borderRadius: radius.pill, padding: spacing.lg, alignItems: 'center' },
-  ctaText: { color: colors.onPrimary, fontWeight: '600', fontSize: fontSize.body },
+  padded: { flex: 1, padding: spacing.lg, backgroundColor: colors.bg },
+  center: { flex: 1, justifyContent: 'center', backgroundColor: colors.bg },
 });
