@@ -1,4 +1,6 @@
-# Organizer outreach (draft)
+# Organizer outreach (draft, optional)
+
+Status: not needed for now. The owner decided (2026-11-06) that RunDex is personal and non-commercial, so no permission requests are sent. Kept as a template in case the project is shared more widely.
 
 Purpose: get permission to list factual event information (name, date, location, distances, fees, deadline, status) in the RunDex app, with the source cited and a link to the organizer's own registration page. RunDex is a non-commercial personal project built for an internal challenge.
 

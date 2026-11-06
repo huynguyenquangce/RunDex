@@ -33,8 +33,9 @@ Method: fetched each site's homepage and looked for legal pages. The text of lin
 ### Vietnam Trail Series legal pages (read 2026-11-06)
 - Service Agreement (operator: Phu Thinh Ltd. Co / Topas Travel): the site "is protected by copyright law", is "for informational purposes and online registration for races only", "not for any other commercial use", and research, reference and information sharing must be "authorized by Topas Travel and clearly cited".
 - General Trading Conditions and Privacy Policy: no clause on content reuse or automated access (they cover fees/participation and registrants' personal data).
-- Consequence: republishing their event information in RunDex, and any automated collection, should be authorized by Topas Travel and cited. Until then do not enable an automated adapter for this source; seed only a few clearly cited facts, link to the official page, and request permission.
+- Consequence: republishing their event information in RunDex, and any automated collection, should be authorized by Topas Travel and cited. Because of this, keep automated collection from this source off by default; use manually curated, clearly cited facts and link to the official page.
 - The other sites (Pulse Active: hcmcmarathon.com, rundanang.com; irace.vn) show no retrievable terms; that is not permission. Ask first as well.
+- Owner decision (2026-11-06): RunDex is a personal, non-commercial project, so permission requests to organizers are optional and will not be sent for now. Revisit if the app or repo is ever published commercially, in an app store, or promoted beyond personal/challenge use.
 - Not legal advice.
 
 Conclusions and policy for RunDex:
@@ -55,6 +56,6 @@ Vietnam Highlands Trail by UTMB (Da Lat, 8–10/01/2027); Bac Ninh Legacy Marath
 Each must be verified on the organizer's page before it enters the catalog.
 
 ## Next steps
-1. Send permission requests to organizers (Topas Travel, Pulse Active, others) asking to list their event facts with citation and a link to their registration page; keep replies as evidence. Draft in docs/ORGANIZER-OUTREACH.md.
+1. Permission requests are optional (owner decision); template kept in docs/ORGANIZER-OUTREACH.md in case it is needed later.
 2. Choose 3–5 sources for the MVP; record in the source registry and an ADR.
 3. Use the verified list above as seed data (~40–60 events) for week 1.
