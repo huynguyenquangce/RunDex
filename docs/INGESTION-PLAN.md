@@ -1,6 +1,6 @@
 # Ingestion plan: automatic discovery and updates
 
-Status: proposed, 2026-11-06 (pending the owner's answers at the end). Implements ADR 0003. The product ships no seed data: the database starts empty and this pipeline fills it.
+Status: accepted 2026-11-06 with the owner's decisions below; S1 done. Implements ADR 0003. The product ships no seed data: the database starts empty and this pipeline fills it.
 
 ## What "automatic" means here
 A worker process that, on a schedule, (1) discovers event pages on registered sources, (2) fetches them politely, (3) extracts structured fields, (4) validates and compares them with what is stored, (5) applies safe changes and queues risky ones for a person. It runs wherever the database runs (docker compose locally; 24/7 only once hosted, see "Hosting").
@@ -18,8 +18,11 @@ sources.yaml -> discover URLs -> fetch (robots, rate limit, cache) -> raw_docume
 3. **Fetcher**: honest User-Agent (`RunDexBot/0.1 (+repo URL)`), `robots.txt` via `urllib.robotparser`, about 1 request per 2 s per host, conditional GET (ETag/Last-Modified), size limit. Stores `raw_documents(source_id, url, fetched_at, status, content_hash, text)`; unchanged hash means skip extraction.
 4. **Extractor** (adapter interface, three implementations):
    - `jsonld`: schema.org `Event`/`SportsEvent` blocks, deterministic (works only where a site publishes them; to be checked per source).
-   - `llm`: Claude returns JSON for the event schema with per-field confidence and a **verbatim evidence quote**. A deterministic check drops any field whose quote does not occur in the page text (guards against invented values).
+   - `llm`: Claude returns JSON for the event schema with per-field confidence and a **verbatim evidence quote**. A deterministic check drops any field whose quote does not occur in the page text (guards against invented values). Two ways to run it:
+     - `api` mode: the worker calls the Claude API (needs `ANTHROPIC_API_KEY`, billed separately from a Claude chat/Code subscription); model `claude-haiku-5-5`. Fully automatic.
+     - `assisted` mode (no key needed): the worker writes each page to `src/backend/data/inbox/<hash>.json`; the Claude Code subagent `event-extractor` (`.claude/agents/event-extractor.md`, Haiku) reads the inbox and writes `data/outbox/<hash>.json`; `ingest apply` loads the outbox through the same normalize, validate, diff and tier steps. Fetching, validation and applying stay automatic; only the extraction step needs a Claude Code run.
    - `replay`: returns recorded responses by content hash. Tests and reviewers run without an API key.
+   The extractor returns 0..n candidates per page (a listing page holds many events). Output schema: see the agent file.
 5. **Normalizer**: Vietnamese dates and numbers, `42K`/`42 km` to `distance_km`, fees in VND, province to the canonical list used by the region filter, slug `name-year`.
 6. **Validator** (rules): name and start date present; dates sane; `end >= start`; distances positive; registration URL host equals the organizer host or an allowlisted ticketing platform; not a duplicate.
 7. **Matcher/diff**: an existing event is the same if trigram similarity of name is high and dates are within 2 days (same province when known). Output: one `change_proposals` row per changed field (`old, new, confidence, evidence, source_url, status`).
@@ -53,7 +56,10 @@ About 5.5 h. Cut-line, in order: link checker, web-search discovery, review beyo
 ## Hosting
 Out of scope for now (ADR to write if needed). Options: a PaaS plus a cloud PostgreSQL, a small VM, or the owner's own machine.
 
-## Decisions needed from the owner
-1. LLM provider and key: Claude API (recommended model for extraction: `claude-haiku-5-5`, escalate to `claude-sonnet-5-5` for hard pages). Do you have an API key to use on your personal machine?
-2. First sources: `vietnamtrailseries.com`, `hcmcmarathon.com`, `rundanang.com` (sitemaps exist) as tier 2; listing/blog pages only to discover names (tier 3)?
-3. Review through CLI for now?
+## Decisions (owner, 2026-11-06)
+1. No API key for now: start with `replay` and `assisted` modes (agent `event-extractor`, model Haiku 5.5, i.e. `claude-haiku-5-5`); add the `api` provider behind the same interface when a key exists.
+2. Sources: as many as possible; the registry `config/sources.yaml` starts with 19 (6 organizer/ticketing pages as tier 2, 11 listings and blogs as tier 3, 2 disabled with reasons). More are added over time. robots.txt is still checked at fetch time.
+3. Review through the CLI for now.
+
+## Progress
+- S1 done: migration 0002 (`sources`, `raw_documents`, `change_proposals`, `audit_log`), models, registry loader, `python -m app.ingest sources sync|list`, tests.

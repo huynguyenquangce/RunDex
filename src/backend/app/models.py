@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     Computed,
     Date,
@@ -12,12 +13,14 @@ from sqlalchemy import (
     Index,
     Integer,
     Numeric,
+    SmallInteger,
     String,
     Text,
     Time,
     UniqueConstraint,
     func,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -105,3 +108,100 @@ class Distance(Base):
     registration_deadline: Mapped[date | None] = mapped_column(Date)
 
     event: Mapped[Event] = relationship(back_populates="distances")
+
+
+SOURCE_KINDS = ("sitemap", "listing_page", "event_page")
+PROPOSAL_KINDS = ("create", "update")
+PROPOSAL_STATUSES = ("pending", "auto_applied", "approved", "rejected", "superseded")
+
+
+class Source(Base):
+    """A registered place to look for events (see config/sources.yaml)."""
+
+    __tablename__ = "sources"
+    __table_args__ = (
+        CheckConstraint(_in_list("kind", SOURCE_KINDS), name="ck_sources_kind"),
+        CheckConstraint("tier BETWEEN 1 AND 3", name="ck_sources_tier"),
+        CheckConstraint("refresh_days > 0", name="ck_sources_refresh_days"),
+    )
+
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    name: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(20))
+    url: Mapped[str] = mapped_column(Text)
+    tier: Mapped[int] = mapped_column(SmallInteger)
+    url_include: Mapped[str | None] = mapped_column(Text)
+    enabled: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    refresh_days: Mapped[int] = mapped_column(Integer, server_default="7")
+    notes: Mapped[str | None] = mapped_column(Text)
+    last_fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RawDocument(Base):
+    """A fetched page. Unchanged content (same hash) is not extracted twice."""
+
+    __tablename__ = "raw_documents"
+    __table_args__ = (
+        UniqueConstraint("url", "content_hash", name="uq_raw_documents_url_hash"),
+        Index("ix_raw_documents_source_url", "source_id", "url", "fetched_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    source_id: Mapped[str] = mapped_column(ForeignKey("sources.id", ondelete="CASCADE"))
+    url: Mapped[str] = mapped_column(Text)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    http_status: Mapped[int] = mapped_column(Integer)
+    content_hash: Mapped[str] = mapped_column(String(64))
+    text: Mapped[str] = mapped_column(Text)
+    etag: Mapped[str | None] = mapped_column(Text)
+    last_modified: Mapped[str | None] = mapped_column(Text)
+
+
+class ChangeProposal(Base):
+    """One proposed change to the catalog, with where it came from and why it was (not) applied."""
+
+    __tablename__ = "change_proposals"
+    __table_args__ = (
+        CheckConstraint(_in_list("kind", PROPOSAL_KINDS), name="ck_change_proposals_kind"),
+        CheckConstraint(_in_list("status", PROPOSAL_STATUSES), name="ck_change_proposals_status"),
+        CheckConstraint("tier BETWEEN 1 AND 3", name="ck_change_proposals_tier"),
+        Index("ix_change_proposals_status", "status"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(10))
+    # NULL for a "create" proposal until the event exists.
+    event_id: Mapped[int | None] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"))
+    source_id: Mapped[str] = mapped_column(ForeignKey("sources.id", ondelete="CASCADE"))
+    raw_document_id: Mapped[int | None] = mapped_column(
+        ForeignKey("raw_documents.id", ondelete="SET NULL")
+    )
+    field: Mapped[str | None] = mapped_column(String(60))
+    old_value: Mapped[object | None] = mapped_column(JSONB)
+    new_value: Mapped[object] = mapped_column(JSONB)
+    confidence: Mapped[Decimal | None] = mapped_column(Numeric(3, 2))
+    evidence: Mapped[str | None] = mapped_column(Text)
+    tier: Mapped[int] = mapped_column(SmallInteger)
+    status: Mapped[str] = mapped_column(String(15), server_default="pending")
+    reason: Mapped[str | None] = mapped_column(Text)
+    decided_by: Mapped[str | None] = mapped_column(String(80))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AuditLog(Base):
+    """Append-only record of every change applied to the catalog."""
+
+    __tablename__ = "audit_log"
+    __table_args__ = (Index("ix_audit_log_event_id", "event_id"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    actor: Mapped[str] = mapped_column(String(80))
+    action: Mapped[str] = mapped_column(String(40))
+    event_id: Mapped[int | None] = mapped_column(ForeignKey("events.id", ondelete="SET NULL"))
+    proposal_id: Mapped[int | None] = mapped_column(
+        ForeignKey("change_proposals.id", ondelete="SET NULL")
+    )
+    details: Mapped[object | None] = mapped_column(JSONB)

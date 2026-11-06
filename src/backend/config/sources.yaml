@@ -1,0 +1,153 @@
+# Registry of places where RunDex looks for running events (docs/INGESTION-PLAN.md).
+# tier 1: official site parsed by rules      -> changes auto-applied
+# tier 2: official site read by an LLM       -> low-impact changes auto-applied, risky ones reviewed
+# tier 3: news, blogs, listings (discovery)  -> always reviewed
+# enabled: false means "known but not used yet" (see notes). robots.txt is checked again at fetch time.
+sources:
+  # ---- tier 2: organizer / official event sites -------------------------------------------
+  - id: vietnamtrailseries
+    name: Vietnam Trail Series (Topas Travel)
+    kind: sitemap
+    url: https://vietnamtrailseries.com/sitemap_index.xml
+    tier: 2
+    url_include: "/(trail-marathon|mountain-marathon|jungle-marathon|ultra-marathon)/"
+    refresh_days: 3
+    notes: robots.txt allows crawling. Service Agreement asks for citation and restricts commercial use.
+
+  - id: hcmcmarathon
+    name: HCMC Marathon (Pulse Active)
+    kind: sitemap
+    url: https://hcmcmarathon.com/sitemap_index.xml
+    tier: 2
+    refresh_days: 3
+    notes: robots.txt blocks nothing. No terms found.
+
+  - id: rundanang
+    name: Danang International Marathon (Pulse Active)
+    kind: sitemap
+    url: https://rundanang.com/wp-sitemap.xml
+    tier: 2
+    refresh_days: 3
+    notes: robots.txt blocks only /wp-admin/. Terms link not retrievable.
+
+  - id: hanoi-marathon
+    name: VPBank Hanoi Marathon
+    kind: event_page
+    url: https://hanoi-marathon.com/
+    tier: 2
+    refresh_days: 7
+    notes: URL seen in a search result; robots.txt and structure not checked yet.
+
+  - id: irace-vtm
+    name: iRace - Vietnam Trail Marathon page
+    kind: event_page
+    url: https://irace.vn/su-kien/vietnam-trail-marathon/
+    tier: 2
+    refresh_days: 7
+    notes: Ticketing platform event page. robots.txt blocks many named bots but not generic agents.
+
+  - id: endorphins-vtm
+    name: Endorphins Running - VTM 42km
+    kind: event_page
+    url: https://endorphinsrunning.com/races/vtm-42km-trail-moc-chau
+    tier: 2
+    refresh_days: 14
+    notes: Race listing page with dates, distances and prices; secondary source for the same event.
+
+  # ---- tier 3: listings and blogs used to discover events ----------------------------------
+  - id: thegioichaybo-2027
+    name: The Gioi Chay Bo - 2027 race list
+    kind: listing_page
+    url: https://www.thegioichaybo.vn/blogs/giai-chay/tong-hop-giai-chay-bo-2027
+    tier: 3
+    refresh_days: 7
+    notes: robots.txt allows blog pages (sitemap at /sitemap.xml).
+
+  - id: tikpik-2027
+    name: TikPik - 2027 race calendar
+    kind: listing_page
+    url: https://tikpik.vn/blog/lich-giai-chay-bo-2027/
+    tier: 3
+    refresh_days: 7
+
+  - id: linh-academy-road
+    name: Linh Academy - race calendar 2026-2027
+    kind: listing_page
+    url: https://linh.academy/kien-thuc/giai-chay/giai-chay-bo
+    tier: 3
+    refresh_days: 7
+
+  - id: linh-academy-trail
+    name: Linh Academy - trail calendar 2026-2027
+    kind: listing_page
+    url: https://linh.academy/kien-thuc/chay-trail/lich-giai-chay-trail
+    tier: 3
+    refresh_days: 7
+
+  - id: happyrun-marathon
+    name: HappyRun - marathon schedule
+    kind: listing_page
+    url: https://happyrun.vn/blogs/chaybo/giai-chay-bo-marathon
+    tier: 3
+    refresh_days: 7
+
+  - id: gearvn-marathon
+    name: GearVN - race list
+    kind: listing_page
+    url: https://gearvn.com/blogs/tin-tuc/danh-sach-giai-chay-bo-marathon
+    tier: 3
+    refresh_days: 14
+
+  - id: evivatour-2026
+    name: Evivatour - Vietnam sports events
+    kind: listing_page
+    url: https://evivatour.com/?p=38307
+    tier: 3
+    refresh_days: 14
+
+  - id: finishers-vietnam
+    name: Finishers - marathons in Vietnam
+    kind: listing_page
+    url: https://www.finishers.com/en/activities/road-running/marathon/marathons-in-vietnam
+    tier: 3
+    refresh_days: 14
+    notes: International listing; robots.txt not checked yet.
+
+  - id: marathonscout-danang
+    name: Marathon Scout - Danang
+    kind: event_page
+    url: https://marathonscout.com/races/danang-international-marathon
+    tier: 3
+    refresh_days: 14
+    notes: robots.txt not checked yet.
+
+  - id: pace8-vtm
+    name: Pace8 - Vietnam Trail Marathon 2027
+    kind: event_page
+    url: https://pace8.vn/su-kien/vietnam-trail-marathon-2027
+    tier: 3
+    refresh_days: 14
+
+  - id: asiatrailmaster-news
+    name: Asia Trail Master - VTM news
+    kind: event_page
+    url: http://www.asiatrailmaster.com/news/2026/6/13/vtm
+    tier: 3
+    refresh_days: 30
+
+  # ---- known but disabled -------------------------------------------------------------------
+  - id: ahotu-vtm
+    name: Ahotu - Vietnam Trail Marathon
+    kind: event_page
+    url: https://www.ahotu.com/event/vietnam-trail-marathon
+    tier: 3
+    enabled: false
+    notes: robots.txt returned 403 to our fetch; do not crawl.
+
+  - id: itra-vtm
+    name: ITRA - Vietnam Trail Marathon 42km
+    kind: event_page
+    url: https://itra.run/Races/RaceCourse/42km/2026/104910
+    tier: 3
+    enabled: false
+    notes: robots.txt not retrievable (404/empty); check terms before enabling.

@@ -82,3 +82,30 @@ def test_seed_is_idempotent(db: Session) -> None:
     assert (created, updated) == (0, len(events))
     assert db.scalar(text("SELECT count(*) FROM events")) == count
     assert db.scalar(text("SELECT count(*) FROM distances")) == distances
+
+
+def test_ingestion_tables_exist(db: Session) -> None:
+    tables = set(inspect(db.get_bind()).get_table_names())
+    assert {"sources", "raw_documents", "change_proposals", "audit_log"} <= tables
+
+
+def test_sync_sources_is_idempotent(db: Session) -> None:
+    from app.ingest.sources import DEFAULT_SOURCES_PATH, load_sources, sync_sources
+
+    configs = load_sources(DEFAULT_SOURCES_PATH)
+    assert sync_sources(db, configs) == (len(configs), 0)
+    assert sync_sources(db, configs) == (0, len(configs))
+    assert db.scalar(text("SELECT count(*) FROM sources")) == len(configs)
+    disabled = db.scalar(text("SELECT count(*) FROM sources WHERE NOT enabled"))
+    assert disabled == sum(1 for c in configs if not c.enabled)
+
+
+def test_change_proposal_checks_reject_bad_status(db: Session) -> None:
+    from app.models import ChangeProposal, Source
+
+    db.add(Source(id="s", name="S", kind="event_page", url="https://example.org", tier=2))
+    db.commit()
+    db.add(ChangeProposal(kind="create", source_id="s", new_value={}, tier=2, status="maybe"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+    db.rollback()

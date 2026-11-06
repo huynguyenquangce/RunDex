@@ -20,3 +20,6 @@ build/
 .venv/
 .pytest_cache/
 .ruff_cache/
+
+# Ingestion working files (fetched page text is not committed)
+src/backend/data/
