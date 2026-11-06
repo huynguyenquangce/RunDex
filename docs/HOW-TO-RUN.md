@@ -1,204 +1,252 @@
-# How to Run RunDex
+# How to Run RunDex (WSL / Linux)
 
-This guide takes you from a clean machine to the app running on your phone, step by step. Commands are for **Windows (PowerShell)**; macOS/Linux differences are noted. Each step ends with a **check** so you know it worked before moving on.
+Step by step, from a clean WSL (Ubuntu) to the app on your phone. **Every command runs in the WSL terminal** unless a step says "Windows PowerShell (admin)". Each step ends with a **Check** so you know it worked before moving on.
 
 What runs where:
 
 ```
-Your phone (Expo Go)  ──Wi-Fi──►  Expo dev server (Metro, :8081)   ┐
-                      ──Wi-Fi──►  RunDex API (:8000)  ──► PostgreSQL (:5432)   ┘  all on your computer
+Phone (Expo Go) ──Wi-Fi──► Expo dev server (Metro :8081)            ┐
+                ──Wi-Fi──► RunDex API (:8000) ──► PostgreSQL (:5432) ┘  all inside WSL
 ```
 
-Time needed: about 30 minutes the first time (downloads), 2 minutes afterwards.
+Time: about 30 minutes the first time (downloads), 2 minutes afterwards.
 
 ---
 
-## 0. What you need (one time)
+## 0. Prerequisites (one time)
 
-| Tool | Why | Check |
-|---|---|---|
-| **Git** | get the code | `git --version` |
-| **Node.js 22 or newer** (LTS) | the mobile app | `node -v` |
-| **Docker Desktop** (running) | PostgreSQL + API | `docker version` shows a Client and a Server |
-| **Expo Go** on your phone (App Store / Google Play) | open the app | installed |
-| A phone and a computer on the **same Wi-Fi** | phone reaches the computer | see step 6 if the network blocks it |
-
-macOS/Linux: install the same tools; use a normal terminal instead of PowerShell.
+In WSL:
+```bash
+sudo apt update
+sudo apt install -y git curl python3-venv python3-pip
+node -v        # must be v22 or newer; if not: curl -fsSL https://fnm.vercel.app/install | bash   (then: fnm install 22)
+docker version # must show a Client and a Server
+```
+- **Docker:** either Docker Desktop (Windows) with "WSL integration" enabled for your distro, or Docker Engine installed inside WSL. If `docker version` says *permission denied*:
+  ```bash
+  sudo usermod -aG docker $USER
+  # close the WSL terminal, run `wsl --shutdown` in Windows PowerShell, then open WSL again
+  ```
+- **Expo Go** on your phone (App Store / Google Play).
+- Phone and computer on the **same Wi-Fi** (step 7 covers networks that block it).
 
 ---
 
-## 1. Get the code
+## 1. Get the code (inside the WSL filesystem)
 
-```powershell
+Keep the project in your WSL home, **not** under `/mnt/c/...` (the Windows drive is very slow for `npm`).
+```bash
+cd ~
 git clone https://github.com/huynguyenquangce/RunDex.git
 cd RunDex
 ```
-**Check:** `dir` (or `ls`) shows `src`, `docs`, `README.md`.
+**Check:** `ls` shows `src`, `docs`, `README.md`.
 
 ---
 
 ## 2. Start the backend (API + database)
 
-```powershell
-cd src
-copy .env.example .env        # macOS/Linux: cp .env.example .env
+```bash
+cd ~/RunDex/src
+cp .env.example .env
 docker compose up --build
 ```
-The first run downloads images and takes a few minutes. Leave this window open: it is the server.
+The first run downloads images (a few minutes). Leave this terminal open: it is the server.
 
-**Check 1:** the log ends with a line like `Uvicorn running on http://0.0.0.0:8000`.
+**Check 1:** the log ends with `Uvicorn running on http://0.0.0.0:8000`.
 
-**Check 2:** open <http://localhost:8000/health> in a browser. You should see `{"status":"ok"}`.
-Also open <http://localhost:8000/docs> to browse the API.
+**Check 2** (second WSL terminal):
+```bash
+curl http://localhost:8000/health        # {"status":"ok"}
+```
+You can also open <http://localhost:8000/docs> in the Windows browser.
 
 ---
 
 ## 3. Put data in the database
 
-The database starts **empty**, and the app will say "Chưa có giải nào sắp diễn ra". Pick one option.
+The database starts **empty** and the app will say "Chưa có giải nào sắp diễn ra". Pick one option.
 
 ### Option A (2 minutes): load the unverified test fixture
-Use this to see the screens quickly. Open a **second** terminal in `RunDex\src` (the API image does not contain the tests folder, so copy the file in first):
-```powershell
+In the second terminal:
+```bash
+cd ~/RunDex/src
 docker compose cp backend/tests/fixtures/events.fixture.yaml api:/tmp/events.yaml
 docker compose exec api python -m app.seed /tmp/events.yaml
 ```
-**Check:** `seed: 10 created ...`, then <http://localhost:8000/v1/events> shows `"total": ...` with events. (The fixture events are 2026-2027 dates; events already in the past are hidden by default.)
+**Check:** `seed: 10 created ...`, then `curl "http://localhost:8000/v1/events?limit=3"` returns events. (The fixture dates are 2026 to 2027; events already in the past are hidden by default.)
 
 ### Option B (about 20 minutes): run the real ingestion pipeline
-This downloads event pages from the registered sources and builds the catalog. It needs Python 3.12+ on your machine (or run it inside the API container, see below) and **Claude Code** for the extraction step.
+Downloads event pages from the registered sources and builds the catalog. The AI extraction step uses **Claude Code**.
 
-1. Install the backend tools once (in `RunDex\src\backend`):
-   ```powershell
-   python -m venv .venv
-   .venv\Scripts\Activate.ps1          # macOS/Linux: source .venv/bin/activate
+1. Set up the backend tools once:
+   ```bash
+   cd ~/RunDex/src/backend
+   python3 -m venv .venv
+   source .venv/bin/activate
    pip install -e ".[dev]"
-   $env:DATABASE_URL="postgresql+psycopg://rundex:rundex_dev@localhost:5432/rundex"   # macOS/Linux: export DATABASE_URL=...
+   export DATABASE_URL="postgresql+psycopg://rundex:rundex_dev@localhost:5432/rundex"
    ```
-2. Apply the database schema if the API container has not already done it, then run one pass:
-   ```powershell
+2. Apply the schema if the API container has not, then one pass:
+   ```bash
    alembic upgrade head
    python -m app.ingest run --limit 6
    ```
-   This registers the sources and downloads pages into `src\backend\data\inbox` (polite: it respects `robots.txt` and waits between requests).
-3. **Extraction (AI step).** Open Claude Code in the repository folder and ask it to run the extractor on the inbox, for example:
+   It registers the sources and downloads pages into `src/backend/data/inbox` (polite: it respects `robots.txt` and waits between requests).
+3. **Extraction (AI step).** Open Claude Code in `~/RunDex` and ask:
    > Run the event-extractor agent on the pages in src/backend/data/inbox.
 
-   It writes one result file per page into `src\backend\data\outbox`. (If the named agent is not available in your session, ask Claude Code to follow `.claude/agents/event-extractor.md` itself.)
-4. Apply the results and look at what is waiting:
-   ```powershell
+   It writes one result file per page into `src/backend/data/outbox`. (If the named agent is not available in that session, ask Claude Code to follow `.claude/agents/event-extractor.md` itself.)
+4. Apply the results and see what waits:
+   ```bash
    python -m app.ingest apply
    python -m app.ingest review --summary
    ```
-5. Decide. Events from official sources with high confidence are applied automatically; everything else waits for you:
-   ```powershell
-   python -m app.ingest review --limit 10                 # read the proposals and their evidence
-   python -m app.ingest approve 12 15 20                  # approve by id
+5. Decide. High-confidence events from official sources are applied automatically; everything else waits for you:
+   ```bash
+   python -m app.ingest review --limit 10                  # read proposals and their evidence
+   python -m app.ingest approve 12 15 20                   # approve by id
    python -m app.ingest approve --all --kind create --min-confidence 0.85   # many at once (look first)
    python -m app.ingest reject 14
    ```
-   Approving stamps the event as checked today, so only approve what you have looked at.
+   Approving stamps the event as checked today, so approve only what you have looked at.
 
-**Check:** <http://localhost:8000/v1/events?limit=3> returns events and `total` is above 0.
+**Check:** `curl "http://localhost:8000/v1/events?limit=3"` returns events and `"total"` is above 0.
 
-Other ingestion commands: `fetch`, `apply`, `sources list`, `worker --interval-hours 24`. The `data` folder is git-ignored (downloaded page text is not committed).
+Other commands: `fetch`, `apply`, `sources list`, `worker --interval-hours 24`. The `data/` folder is git-ignored.
 
 ---
 
-## 4. Start the mobile app
+## 4. Let the phone reach WSL (important)
 
-Open a **new** terminal:
-```powershell
-cd RunDex\src\mobile
-npm ci                          # first time only; takes a few minutes
-```
-Tell the app where the API is. The phone must use your **computer's Wi-Fi address**, not `localhost`.
+WSL2 has its own virtual network, so by default **only Windows** can see its ports, not your phone. Choose one fix (A is simpler). These are the only Windows-side commands in this guide.
 
-Find the address:
-- Windows: `ipconfig` → "Wireless LAN adapter Wi-Fi" → **IPv4 Address** (for example `192.168.1.20`)
-- macOS: `ipconfig getifaddr en0`; Linux: `hostname -I`
+### Fix A: mirrored networking (Windows 11 22H2 or newer)
+1. In WSL, create or edit the WSL settings file (it lives in your Windows user folder; replace `<WindowsUser>`):
+   ```bash
+   nano /mnt/c/Users/<WindowsUser>/.wslconfig
+   ```
+   Put this in it and save:
+   ```
+   [wsl2]
+   networkingMode=mirrored
+   ```
+2. Windows PowerShell **as Administrator**: allow connections from the LAN into WSL, then restart WSL:
+   ```powershell
+   Set-NetFirewallHyperVVMSetting -Name '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -DefaultInboundAction Allow
+   wsl --shutdown
+   ```
+3. Open WSL again and start the backend again (step 2).
 
-Then start Expo (replace the address):
-```powershell
-$env:EXPO_PUBLIC_API_URL="http://192.168.1.20:8000"     # macOS/Linux: export EXPO_PUBLIC_API_URL=http://192.168.1.20:8000
+WSL now shares the Windows network address. **Check (in WSL):** `hostname -I` shows your Wi-Fi address (for example `192.168.1.20`). Call it `<address>`: it is what the phone uses.
+
+### Fix B: forward the ports (any Windows 10/11)
+1. In WSL, get WSL's own address: `hostname -I | awk '{print $1}'` (example `172.28.112.5`).
+2. Find your Windows **Wi-Fi IPv4 address**. From WSL you can ask Windows:
+   ```bash
+   powershell.exe -NoProfile -Command "(Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias 'Wi-Fi').IPAddress"
+   ```
+   (example `192.168.1.20`; this is `<address>`).
+3. Windows PowerShell **as Administrator** (replace both addresses):
+   ```powershell
+   netsh interface portproxy add v4tov4 listenaddress=192.168.1.20 listenport=8000 connectaddress=172.28.112.5 connectport=8000
+   netsh interface portproxy add v4tov4 listenaddress=192.168.1.20 listenport=8081 connectaddress=172.28.112.5 connectport=8081
+   New-NetFirewallRule -DisplayName "RunDex dev" -Direction Inbound -Protocol TCP -LocalPort 8000,8081 -Action Allow -Profile Any
+   ```
+4. WSL's address changes after every WSL restart: redo step 1 and the two `netsh` lines when it does (remove old ones with `netsh interface portproxy delete v4tov4 listenaddress=192.168.1.20 listenport=8000`).
+
+### Check it before opening the app
+On the **phone's browser** open `http://<address>:8000/health`. You must see `{"status":"ok"}`. If not, fix the network first (step 7), not the app.
+
+---
+
+## 5. Start the mobile app
+
+New WSL terminal. `<address>` is the Wi-Fi address from step 4.
+```bash
+cd ~/RunDex/src/mobile
+npm ci                                   # first time only; a few minutes
+export EXPO_PUBLIC_API_URL="http://<address>:8000"
+export REACT_NATIVE_PACKAGER_HOSTNAME="<address>"     # Expo advertises the address the phone can reach
 npx expo start --clear
 ```
-**Check:** the terminal shows a QR code and `Metro waiting on exp://192.168.1.20:8081`.
+**Check:** the terminal shows a QR code and `exp://<address>:8081`.
 
-> The `$env:` variable only lives in this PowerShell window. Changing the address later? Stop Expo (Ctrl+C) and start again with `--clear`; the address is baked into the bundle.
+> The two `export` lines only last for this terminal. If the address changes, stop Expo (Ctrl+C), export again and start with `--clear` (the API address is baked into the bundle).
 
 ---
 
-## 5. Open it on your phone
+## 6. Open it on the phone
 
-1. Make sure the phone is on the **same Wi-Fi** as the computer.
-2. **iPhone:** open the Camera app, point it at the QR code, tap the banner. **Android:** open Expo Go, tap "Scan QR code".
-3. Wait for the bundle to download the first time (up to a minute).
+1. Phone on the **same Wi-Fi** as the computer.
+2. **iPhone:** Camera app, point at the QR code, tap the banner. **Android:** Expo Go, "Scan QR code".
+3. Wait for the first bundle download (up to a minute).
 
 **What you should see**
-- **Danh sách:** the title "Giải chạy" (iPhone) or "RunDex" (Android), a search box, filter chips, and event cards showing date, type, status, place and distances.
-- Type `da lat` in the search box: only Đà Lạt events remain (no need for accents).
-- Tap chips such as **Trail** or **42K**; tap **Tất cả** to clear.
-- Tap the **filter button** (next to the search box): choose type, distances, time range (this month / 3 / 6 months), region and "only open for registration". The green button shows how many events match ("Xem 12 giải"); tap it to apply, or **Xóa bộ lọc** to reset. The button on the list shows how many filter groups are active.
-- Pull down to refresh. Scroll to the end to load more.
-- Tap a card: **Chi tiết** with date and weekday, place and "Xem bản đồ", organizer, registration deadline, each distance with start time, fee, elevation and cut-off, the data source and when it was last checked.
-- **Đăng ký trên trang ban tổ chức** opens the organizer's own page in the browser (only shown when the event has a link).
-- Airplane mode after loading once, then reopen the app: the list is still there with a banner "Ngoại tuyến".
+- **Danh sách:** title "Giải chạy" (iPhone) or "RunDex" (Android), search box, filter button, chips, event cards (date, type, status, place, distances).
+- Type `da lat` in the search box: only Đà Lạt events remain (accents are not needed).
+- Chips such as **Trail** or **42K** filter; **Tất cả** clears.
+- **Filter button:** type, distances, time range (this month / 3 / 6 months), region, "only open for registration". The green button shows how many events match ("Xem 12 giải"); **Xóa bộ lọc** resets; a badge on the list's filter button shows how many groups are active.
+- Pull down to refresh; scroll to the end to load more.
+- Tap a card: **Chi tiết** with weekday and date, place and "Xem bản đồ", organizer, registration deadline, each distance (start time, fee, elevation, cut-off), the data source and when it was last checked.
+- **Đăng ký trên trang ban tổ chức** opens the organizer's own page in the browser (only when the event has a link).
+- Airplane mode after loading once, reopen the app: the list is still there with a banner "Ngoại tuyến".
 
-**Android emulator instead of a phone:** install Android Studio, start an emulator, press `a` in the Expo terminal. The emulator reaches the computer at `http://10.0.2.2:8000`, so you can skip `EXPO_PUBLIC_API_URL`.
-
-**iOS simulator** exists only on macOS (press `i`). On Windows use a real iPhone with Expo Go.
+Emulators are not covered here (iOS simulators need macOS, Android Studio runs on the Windows side). Use a real phone with Expo Go.
 
 ---
 
-## 6. If something does not work
+## 7. If something does not work
 
 | What you see | Likely cause | What to do |
 |---|---|---|
-| Phone cannot open the QR code / "could not connect" | Wi-Fi blocks devices from seeing each other (common on company or guest Wi-Fi), or the firewall blocks port 8081 | Use your phone's hotspot for the computer, or a home network. Allow ports 8081 and 8000 in the firewall (Windows admin PowerShell: `New-NetFirewallRule -DisplayName "RunDex dev" -Direction Inbound -Protocol TCP -LocalPort 8000,8081 -Action Allow -Profile Any`) |
-| App says "Không tải được danh sách giải" | Wrong API address, API not running, or you forgot `--clear` after changing it | On the phone's browser open `http://<your IP>:8000/health`. If that fails it is the network/firewall. Then restart Expo with `--clear` |
+| Windows browser opens `localhost:8000` but the phone cannot open `http://<address>:8000/health` | WSL2's network is not exposed to the LAN | Step 4 (mirrored networking or port forwarding) |
+| `ERR_CONNECTION_REFUSED` on `<address>:8000` from Windows itself | Nothing listening: backend not running, or the port forward points to an old WSL address | Start the backend; for Fix B redo the `netsh` lines with the current `hostname -I` |
+| Phone times out (spinner) but the backend works in Windows | Firewall, or the Wi-Fi isolates devices (common on company or guest Wi-Fi) | Add the firewall rule from step 4; otherwise use your phone's hotspot for the computer and repeat step 4 with the new address (iPhone hotspots use `172.20.10.x`) |
+| QR code opens Expo Go but "could not connect" / "unable to load" | Expo advertises WSL's internal address | Set `REACT_NATIVE_PACKAGER_HOSTNAME` (step 5) and restart with `--clear` |
+| App says "Không tải được danh sách giải" | Wrong API address, API not running, or you forgot `--clear` after changing it | Test `http://<address>:8000/health` on the phone, then restart Expo with `--clear` |
 | App says "Chưa có giải nào sắp diễn ra" | Database is empty | Step 3 |
-| Expo Go says the project is incompatible | Expo Go older than the project's SDK 58 | Update Expo Go from the store |
-| `npm ci` fails or is very slow | Network, or the folder is on a slow drive | Retry; on Windows keep the repo on a normal drive, not inside WSL's `/mnt/c`. If it complains about the lock file, delete `node_modules` and run `npm install` instead |
-| `docker compose up` fails: port 5432 or 8000 in use | Another PostgreSQL/server on your machine | Stop it, or change the left-hand port numbers in `src/docker-compose.yml` |
-| `docker: permission denied` (Linux) | Your user is not in the `docker` group | `sudo usermod -aG docker $USER`, then log out and in |
-| On Linux/WSL the phone cannot reach the API | WSL2 does not expose ports to the LAN | Run Docker and Expo from Windows (Docker Desktop + PowerShell), or use mirrored networking |
+| Expo Go says the project is incompatible | Expo Go older than SDK 58 | Update Expo Go from the store |
+| `npm ci` is very slow | Repo is under `/mnt/c` | Clone into `~` (step 1) |
+| `npm ci` complains about the lock file | Platform differences | `rm -rf node_modules && npm install` |
+| `docker: permission denied` | Your user is not in the `docker` group | Step 0 |
+| `docker compose up`: port 5432 or 8000 already in use | Another PostgreSQL/server on the machine | Stop it, or change the left-hand port numbers in `src/docker-compose.yml` |
+| `curl localhost:8000` hangs inside WSL | Containers stopped | `docker compose ps` in `~/RunDex/src` |
 
 ---
 
-## 7. Stop and clean up
+## 8. Stop and clean up
 
 - Expo: `Ctrl+C` in its terminal.
-- Backend: `Ctrl+C`, then `docker compose down` in `src` (add `-v` to also delete the database data).
+- Backend: `Ctrl+C`, then `docker compose down` in `~/RunDex/src` (add `-v` to also delete the database data).
+- Fix B only: remove the forwards with `netsh interface portproxy reset` (Windows PowerShell as Administrator).
 
 ---
 
-## 8. Run the tests and checks
+## 9. Run the tests and checks
 
-Backend (in `src/backend`, with the virtual environment active):
-```powershell
-docker compose exec db createdb -U rundex rundex_test        # once; run from RunDex\src
-$env:DATABASE_URL="postgresql+psycopg://rundex:rundex_dev@localhost:5432/rundex_test"; $env:REQUIRE_DB="1"
+Backend (in `~/RunDex/src/backend`, virtual environment active):
+```bash
+docker compose -f ../docker-compose.yml exec db createdb -U rundex rundex_test    # once
+export DATABASE_URL="postgresql+psycopg://rundex:rundex_dev@localhost:5432/rundex_test" REQUIRE_DB=1
 pytest
-ruff check . ; ruff format --check .
+ruff check . && ruff format --check .
 ```
 The database tests **truncate tables**, so they refuse to run unless the database name ends in `_test`.
 
-Mobile (in `src/mobile`):
-```powershell
+Mobile (in `~/RunDex/src/mobile`):
+```bash
 npm run typecheck
 npm test
-npm run api:types          # regenerate src/api/schema.d.ts from src/openapi/openapi.json
+npm run api:types      # regenerate src/api/schema.d.ts from src/openapi/openapi.json
 ```
 `api:types` runs `openapi-typescript` through `npx` with TypeScript 5 (Expo SDK 58 uses TypeScript 6, which it does not support yet).
 
-Regenerate the API contract after changing the API (in `src/backend`): `python -m app.export_openapi`. CI fails when `src/openapi/openapi.json` or the generated types are out of date.
-
-GitHub Actions runs the same checks on every push (`.github/workflows`).
+After changing the API, regenerate the contract (in `src/backend`): `python -m app.export_openapi`. CI fails when `src/openapi/openapi.json` or the generated types are out of date. GitHub Actions runs the same checks on every push.
 
 ---
 
-## 9. Where things are
+## 10. Where things are
 
 | Path | What |
 |---|---|
