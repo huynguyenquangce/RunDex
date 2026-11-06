@@ -1,0 +1,59 @@
+# Ingestion plan: automatic discovery and updates
+
+Status: proposed, 2026-11-06 (pending the owner's answers at the end). Implements ADR 0003. The product ships no seed data: the database starts empty and this pipeline fills it.
+
+## What "automatic" means here
+A worker process that, on a schedule, (1) discovers event pages on registered sources, (2) fetches them politely, (3) extracts structured fields, (4) validates and compares them with what is stored, (5) applies safe changes and queues risky ones for a person. It runs wherever the database runs (docker compose locally; 24/7 only once hosted, see "Hosting").
+
+```
+sources.yaml -> discover URLs -> fetch (robots, rate limit, cache) -> raw_documents
+   -> extract (JSON-LD, else LLM with quoted evidence) -> normalize -> validate (rules)
+   -> match existing event (dedupe) -> diff -> change_proposals
+   -> trust tier: auto-apply (+audit_log) | pending review (CLI) -> events
+```
+
+## Pieces
+1. **Source registry** (`sources.yaml`, loaded into `sources`): `id, name, kind (sitemap | listing_page | event_page), url, tier (1|2|3), url_include (regex), refresh`. Adding a source is a config change.
+2. **Discovery**: read a sitemap or listing page, keep URLs matching `url_include`, drop URLs already known and unchanged. Cheap heuristics first; the LLM only classifies ambiguous pages ("is this a running event page?"). Optional phase 2: LLM with web search to find new organizers (always tier 3, always reviewed).
+3. **Fetcher**: honest User-Agent (`RunDexBot/0.1 (+repo URL)`), `robots.txt` via `urllib.robotparser`, about 1 request per 2 s per host, conditional GET (ETag/Last-Modified), size limit. Stores `raw_documents(source_id, url, fetched_at, status, content_hash, text)`; unchanged hash means skip extraction.
+4. **Extractor** (adapter interface, three implementations):
+   - `jsonld`: schema.org `Event`/`SportsEvent` blocks, deterministic (works only where a site publishes them; to be checked per source).
+   - `llm`: Claude returns JSON for the event schema with per-field confidence and a **verbatim evidence quote**. A deterministic check drops any field whose quote does not occur in the page text (guards against invented values).
+   - `replay`: returns recorded responses by content hash. Tests and reviewers run without an API key.
+5. **Normalizer**: Vietnamese dates and numbers, `42K`/`42 km` to `distance_km`, fees in VND, province to the canonical list used by the region filter, slug `name-year`.
+6. **Validator** (rules): name and start date present; dates sane; `end >= start`; distances positive; registration URL host equals the organizer host or an allowlisted ticketing platform; not a duplicate.
+7. **Matcher/diff**: an existing event is the same if trigram similarity of name is high and dates are within 2 days (same province when known). Output: one `change_proposals` row per changed field (`old, new, confidence, evidence, source_url, status`).
+8. **Decision by tier** (ADR 0003): T1 auto-apply; T2 auto-apply low-impact fields and new events, but date/status/location/registration URL changes go to review; T3 always review. Threshold and high-impact field list are config. Applied changes are written to `audit_log`. Auto-applied changes from an official source set `last_verified_at`; approved T3 changes set it at approval time.
+9. **Review**: CLI first (`python -m app.ingest review | approve <id> | reject <id>`); screens later.
+10. **Scheduler**: `python -m app.ingest run --once` and `worker` (loop). Refresh cadence by event date: within 30 days daily, within 180 days weekly, later monthly; discovery weekly. A `worker` service is added to docker compose.
+11. **Link checker** (cut-line candidate): weekly HEAD request on `registration_url`, flag dead links.
+
+## Data model additions (migration 0002)
+`sources`, `raw_documents`, `change_proposals`, `audit_log` as in ADR 0004. No change to the public API.
+
+## Configuration and secrets
+`ANTHROPIC_API_KEY` and `LLM_MODEL` from the environment only (never committed; GitHub Secrets if a live run is ever added to CI). `INGEST_MODE=live|replay`. CI uses replay only.
+
+## Work breakdown (hours, AI generates and I review)
+| Slice | Output | h |
+|---|---|---|
+| S1 | Migration 0002, models, `sources.yaml` loader | 1.0 |
+| S2 | Fetcher (robots, rate limit, conditional GET, storage) with tests on a mock transport | 1.0 |
+| S3 | JSON-LD + LLM + replay extractors, evidence check, normalizers, tests | 1.5 |
+| S4 | Validate, dedupe, diff, tier decision, apply + audit, tests | 1.0 |
+| S5 | CLI (run, review, approve/reject), worker loop, compose service | 0.5 |
+| S6 | ADR 0007, docs, architecture page | 0.5 |
+About 5.5 h. Cut-line, in order: link checker, web-search discovery, review beyond CLI, second extractor type. Never cut: fetcher politeness, evidence check, validation, tier decision, audit log, tests.
+
+## Honest limits
+- Coverage equals the registered sources. Three organizer sites cover only a handful of events; broad coverage means adding many organizers over time, plus discovery.
+- LLM extraction can still be wrong in ways the evidence check cannot catch (a correct quote read in the wrong context). That is why dates, status, place and links go to review unless the source is official and confidence is high.
+- Without hosting, "automatic" runs only while the stack is up.
+
+## Hosting
+Out of scope for now (ADR to write if needed). Options: a PaaS plus a cloud PostgreSQL, a small VM, or the owner's own machine.
+
+## Decisions needed from the owner
+1. LLM provider and key: Claude API (recommended model for extraction: `claude-haiku-5-5`, escalate to `claude-sonnet-5-5` for hard pages). Do you have an API key to use on your personal machine?
+2. First sources: `vietnamtrailseries.com`, `hcmcmarathon.com`, `rundanang.com` (sitemaps exist) as tier 2; listing/blog pages only to discover names (tier 3)?
+3. Review through CLI for now?

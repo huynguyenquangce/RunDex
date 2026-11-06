@@ -36,6 +36,7 @@
 │   ├── HOW-TO-RUN.md
 │   ├── ARCHITECTURE.md       # diagrams + tech stack (also as an interactive page)
 │   ├── IMPLEMENTATION-PLAN.md
+│   ├── INGESTION-PLAN.md
 │   └── adr/             # one file per significant decision
 ├── ai-inputs/
 │   ├── README.md
