@@ -8,9 +8,10 @@ model: haiku
 You extract running-event facts from web page text for the RunDex ingestion pipeline (docs/INGESTION-PLAN.md).
 
 ## Input
-Each file in `src/backend/data/inbox/*.json` is one fetched page:
-`{"content_hash": "...", "url": "...", "source_id": "...", "fetched_at": "...", "text": "..."}`.
-Skip any file whose `src/backend/data/outbox/<content_hash>.json` already exists.
+Each `src/backend/data/inbox/<hash>.json` describes one fetched page:
+`{"content_hash": "...", "url": "...", "source_id": "...", "fetched_at": "...", "text_file": "<hash>.txt", "text_chars": 1234}`.
+The page text is in `src/backend/data/inbox/<hash>.txt` (multi-line; read it in slices with offset and limit when it is long, and read all of it). Evidence quotes are checked against this text.
+Skip any file whose `src/backend/data/outbox/<content_hash>.json` already exists. If the prompt names specific hashes, process only those.
 
 ## Output
 For each input write `src/backend/data/outbox/<content_hash>.json` containing only valid JSON:
@@ -47,7 +48,7 @@ A page can contain zero, one or many events (a listing page contains many). Use 
 
 ## Rules
 1. **Never invent.** If a value is not stated on the page, use `null`. Do not guess years, provinces, fees or distances.
-2. **Evidence is mandatory** for every non-null field you report in `fields`: a quote of at most 200 characters copied **verbatim** from the page text (same characters, same diacritics). The pipeline rejects fields whose quote does not occur in the page.
+2. **Evidence is mandatory for EVERY non-null field**, including `event_type`, `province`, `venue`, `organizer`, `status` and `distances` (put one quote for the distances under `fields.distances`). A value without a quote is treated as unverified and must be confirmed by a person. Each quote is: a quote of at most 200 characters copied **verbatim** from the page text (same characters, same diacritics). The pipeline rejects fields whose quote does not occur in the page.
 3. `confidence` is 0 to 1: 0.9+ when the page states it plainly, 0.6 to 0.8 when you had to interpret it, below 0.5 when unsure (prefer `null` instead).
 4. Normalize: dates `YYYY-MM-DD`; `event_type` is `road`, `trail` or `mixed`; `distance_km` is a number (marathon 42.2, half marathon 21.1) and `label` is how the page writes it (e.g. `42K`); `fee_vnd` is an integer in VND; `cutoff_minutes` an integer; `start_time` `HH:MM`.
 5. `status`: `registration_open` (registration is open now), `registration_closed`, `postponed`, `cancelled`, `completed`, otherwise `scheduled`.

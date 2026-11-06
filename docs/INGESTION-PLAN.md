@@ -65,3 +65,14 @@ Out of scope for now (ADR to write if needed). Options: a PaaS plus a cloud Post
 - S2 done: fetcher (robots.txt, 2 s per host, ETag, hash dedupe), sitemap discovery, `python -m app.ingest fetch`; real run on 17 sources queued 32 pages in `data/inbox`.
 - S3 + S4 done (code and tests): `extract.py` (evidence check), `normalize.py`, `validate.py`, `match.py`, `changes.py` (diff + tier policy), `apply.py`, `pipeline.py`; CLI `apply`, `review`, `approve`, `reject`. Next: run the extractor agent on the inbox and `apply`.
 - S1 done: migration 0002 (`sources`, `raw_documents`, `change_proposals`, `audit_log`), models, registry loader, `python -m app.ingest sources sync|list`, tests.
+
+## Rules learned from the first real run (2026-11-06)
+Run: 17 sources -> 32 pages -> 4 Haiku extractor agents -> 242 candidates. Outcome after the pipeline: 1 event applied automatically, 107 new events and 4 updates waiting for review, 85 duplicates merged, 48 rejected (24 dates not backed by the quote, 24 already finished).
+- **Date must match its quote.** The day and month must appear in the quote and no other year may be named. A quote without a year means the year was inferred: the date is kept but its confidence is capped at 0.6, so it is never auto-applied. Month-only dates are rejected.
+- **Omitted evidence vs invented evidence.** For descriptive fields (organizer, event type, province, venue, distances) a missing quote keeps the value as "unverified" (confidence 0.5, forces review); a quote that is not on the page drops the value.
+- **Cross-source duplicates are merged** into one pending proposal with a note "also seen in: ..."; a better tier replaces a weaker pending proposal. Approving a create re-checks the catalog and supersedes it if the event now exists.
+- **Finished events are not added** (the app only lists upcoming events).
+- **Bulk review:** `review --summary`, `review --source/--kind/--min-confidence`, `approve --all <filters>`. Bulk approval stamps `last_verified_at` with the approval time, so approve in bulk only what you have looked at.
+- Practical findings: only 5 of 107 pending events carry a registration link and about half have distances, because listing pages rarely give them; official event pages (tier 2) are what fill those fields.
+- Extractor agent: in this run the agents were general-purpose Haiku agents following `.claude/agents/event-extractor.md` (the named agent is only loaded when a Claude Code session starts, so restart to use it by name). Two agents reported that quotes were not machine-checked: the pipeline check is the real test (24 dates were caught).
+

@@ -81,6 +81,44 @@ def test_too_short_quote_does_not_count() -> None:
     assert not verify_candidate(candidate(fields=fields), PAGE).ok
 
 
+def test_date_must_match_its_quote() -> None:
+    wrong_day = candidate().fields | {"start_date": ev("Ngày thi đấu: 20/01/2027")}
+    page = PAGE + "\nNgày thi đấu: 20/01/2027"
+    result = verify_candidate(candidate(fields=wrong_day), page)
+    assert not result.ok  # 16 Jan is not in "20/01/2027": required date dropped
+
+
+def test_date_with_a_different_year_in_the_quote_is_dropped() -> None:
+    fields = candidate().fields | {"start_date": ev("Ngày thi đấu: 16/01/2026")}
+    result = verify_candidate(candidate(fields=fields), PAGE + "\nNgày thi đấu: 16/01/2026")
+    assert not result.ok
+
+
+def test_date_without_a_year_in_the_quote_is_inferred_and_capped() -> None:
+    page = PAGE + "\nXuất phát ngày 16/01"
+    fields = candidate().fields | {"start_date": ev("Xuất phát ngày 16/01", 0.95)}
+    result = verify_candidate(candidate(fields=fields), page)
+    assert result.ok and result.inferred == ["start_date"]
+    assert result.confidence["start_date"] == 0.6 and result.creation_confidence == 0.6
+
+
+def test_month_names_count_and_month_only_dates_are_dropped() -> None:
+    page = PAGE + "\nRace day: 16 January 2027\nEarly Nov 2026"
+    ok = candidate().fields | {"start_date": ev("Race day: 16 January 2027")}
+    assert verify_candidate(candidate(fields=ok), page).ok
+    month_only = candidate(start_date=date(2026, 11, 1)).fields | {
+        "start_date": ev("Early Nov 2026")
+    }
+    assert not verify_candidate(candidate(start_date=date(2026, 11, 1), fields=month_only), page).ok
+
+
+def test_range_quote_supports_the_first_day() -> None:
+    page = PAGE + "\nTrong khoảng 15–22/11/2027"
+    fields = candidate().fields | {"start_date": ev("Trong khoảng 15–22/11/2027")}
+    cand = candidate(start_date=date(2027, 11, 15), fields=fields)
+    assert verify_candidate(cand, page).ok
+
+
 # ---- normalization -----------------------------------------------------------------------
 
 

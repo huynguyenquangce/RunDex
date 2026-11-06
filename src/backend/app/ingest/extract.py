@@ -27,6 +27,19 @@ EVIDENCE_FIELDS = (
 )
 REQUIRED_FIELDS = ("name", "start_date")
 MIN_QUOTE_CHARS = 3
+# Descriptive fields: when the extractor omits the quote we keep the value but mark it unverified
+# (a person must confirm it). A quote that is not on the page is still treated as invention.
+DESCRIPTIVE_FIELDS = ("organizer", "event_type", "province", "venue", "distances")
+UNVERIFIED_CONFIDENCE = 0.5
+DATE_FIELDS = ("start_date", "end_date", "registration_deadline")
+# A date whose year the quote does not state was inferred, so it can never be auto-applied.
+INFERRED_CONFIDENCE_CAP = 0.6
+_MONTH_NAMES = {
+    1: ("jan", "january"), 2: ("feb", "february"), 3: ("mar", "march"), 4: ("apr", "april"),
+    5: ("may",), 6: ("jun", "june"), 7: ("jul", "july"), 8: ("aug", "august"),
+    9: ("sep", "sept", "september"), 10: ("oct", "october"), 11: ("nov", "november"),
+    12: ("dec", "december"),
+}  # fmt: skip
 
 
 class _Loose(BaseModel):
@@ -74,6 +87,8 @@ class VerifiedCandidate:
     candidate: EventCandidate
     confidence: dict[str, float] = field(default_factory=dict)
     dropped: list[str] = field(default_factory=list)
+    unverified: list[str] = field(default_factory=list)  # kept, but no quote was given
+    inferred: list[str] = field(default_factory=list)  # dates whose year the quote does not state
     reason: str | None = None  # set when the candidate must be rejected
 
     @property
@@ -90,6 +105,20 @@ def normalize_for_match(text: str) -> str:
     return re.sub(r"\s+", " ", unicodedata.normalize("NFC", text)).strip().casefold()
 
 
+def check_date_against_quote(value: date, quote: str) -> tuple[bool, bool]:
+    """Return (consistent, year_stated): does the quote really contain this day and month (and
+    not a different year)?"""
+    numbers = [int(n) for n in re.findall(r"\d+", quote)]
+    words = set(re.findall(r"[a-z]+", normalize_for_match(quote)))
+    has_day = value.day in numbers
+    has_month = value.month in numbers or any(w in words for w in _MONTH_NAMES[value.month])
+    years = [n for n in numbers if 1900 <= n <= 2100]
+    year_stated = value.year in years
+    if years and not year_stated:
+        return False, False  # the quote names a different year
+    return has_day and has_month, year_stated
+
+
 def verify_candidate(candidate: EventCandidate, page_text: str) -> VerifiedCandidate:
     haystack = normalize_for_match(page_text)
     verified = VerifiedCandidate(candidate=candidate.model_copy(deep=True))
@@ -99,9 +128,23 @@ def verify_candidate(candidate: EventCandidate, page_text: str) -> VerifiedCandi
         if value in (None, "", []):
             continue
         evidence = candidate.fields.get(name)
+        if evidence is None and name in DESCRIPTIVE_FIELDS:
+            verified.confidence[name] = UNVERIFIED_CONFIDENCE
+            verified.unverified.append(name)
+            continue
         quote = normalize_for_match(evidence.evidence) if evidence else ""
         if evidence and len(quote) >= MIN_QUOTE_CHARS and quote in haystack:
-            verified.confidence[name] = evidence.confidence
+            confidence = evidence.confidence
+            if name in DATE_FIELDS:
+                consistent, year_stated = check_date_against_quote(value, evidence.evidence)
+                if not consistent:
+                    setattr(target, name, None)
+                    verified.dropped.append(name)
+                    continue
+                if not year_stated:
+                    confidence = min(confidence, INFERRED_CONFIDENCE_CAP)
+                    verified.inferred.append(name)
+            verified.confidence[name] = confidence
         else:
             setattr(target, name, [] if name == "distances" else None)
             verified.dropped.append(name)

@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import textwrap
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -24,6 +25,25 @@ class FetchReport:
     skipped: list[str] = field(default_factory=list)
 
 
+READ_WIDTH = 400
+
+
+def wrap_for_reading(text: str) -> str:
+    """Break very long lines at spaces so tools that read files in slices do not truncate them.
+
+    Only whitespace changes, and evidence matching ignores whitespace differences.
+    """
+    lines = []
+    for line in text.split("\n"):
+        if len(line) <= READ_WIDTH:
+            lines.append(line)
+        else:
+            lines.append(
+                textwrap.fill(line, READ_WIDTH, break_long_words=False, break_on_hyphens=False)
+            )
+    return "\n".join(lines)
+
+
 def content_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -40,12 +60,16 @@ def _write_inbox(data_dir: Path, document: RawDocument) -> Path:
     if outbox_file.exists() or inbox_file.exists():
         return inbox_file
     inbox_file.parent.mkdir(parents=True, exist_ok=True)
+    # The page text goes to its own multi-line .txt so tools can read it in slices.
+    text_file = inbox_file.with_suffix(".txt")
+    text_file.write_text(wrap_for_reading(document.text), encoding="utf-8")
     payload = {
         "content_hash": document.content_hash,
         "url": document.url,
         "source_id": document.source_id,
         "fetched_at": document.fetched_at.isoformat(),
-        "text": document.text,
+        "text_file": text_file.name,
+        "text_chars": len(document.text),
     }
     inbox_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return inbox_file

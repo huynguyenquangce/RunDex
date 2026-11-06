@@ -216,8 +216,9 @@ def test_fetch_source_queues_new_and_changed_pages_only(db: Session, tmp_path: P
     assert len(inbox) == 1
     payload = json.loads(inbox[0].read_text(encoding="utf-8"))
     assert payload["url"] == "https://example.org/event"
-    assert payload["content_hash"] == content_hash(payload["text"])
-    assert "Đà Lạt" in payload["text"]
+    text = (tmp_path / "inbox" / payload["text_file"]).read_text(encoding="utf-8")
+    assert payload["content_hash"] == content_hash(extract_text(HTML))
+    assert "Đà Lạt" in text
 
     report = fetch_source(db, source, fetcher, limit=5, data_dir=tmp_path, now=now)
     assert (report.new_or_changed, report.unchanged) == (0, 1)
@@ -227,6 +228,7 @@ def test_fetch_source_queues_new_and_changed_pages_only(db: Session, tmp_path: P
     report = fetch_source(db, source, fetcher, limit=5, data_dir=tmp_path, now=now)
     assert report.new_or_changed == 1
     assert len(list((tmp_path / "inbox").glob("*.json"))) == 2
+    assert len(list((tmp_path / "inbox").glob("*.txt"))) == 2
     assert len(db.scalars(select(RawDocument)).all()) == 2
     assert source.last_fetched_at == now
 
@@ -246,3 +248,12 @@ def test_already_extracted_pages_are_not_queued_again(db: Session, tmp_path: Pat
 
     fetch_source(db, source, fetcher, limit=5, data_dir=tmp_path)
     assert not list((tmp_path / "inbox").glob("*.json")) if (tmp_path / "inbox").exists() else True
+
+
+def test_wrap_for_reading_only_changes_whitespace() -> None:
+    from app.ingest.fetch_service import wrap_for_reading
+
+    long_line = " ".join(["từ"] * 500)
+    wrapped = wrap_for_reading("ngắn\n" + long_line)
+    assert max(len(line) for line in wrapped.split("\n")) <= 400
+    assert " ".join(wrapped.split()) == " ".join(("ngắn " + long_line).split())

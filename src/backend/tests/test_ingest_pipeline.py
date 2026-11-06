@@ -304,3 +304,114 @@ def test_distances_are_stored_with_the_event(
     write_outbox(tmp_path, "h1", cand)
     run(db, tmp_path)
     assert count(db, Distance) == distance_count
+
+
+def test_same_event_from_two_sources_is_queued_once_with_corroboration(
+    db: Session, tmp_path: Path
+) -> None:
+    first = make_source(db, tier=3, source_id="blog-a")
+    second = make_source(db, tier=3, source_id="blog-b")
+    make_document(db, first, "h1")
+    make_document(db, second, "h2")
+    write_outbox(tmp_path, "h1", candidate())
+    run(db, tmp_path)
+    other = candidate(name="Vietnam Trail Marathon", venue=None)
+    other["fields"]["name"]["evidence"] = "Vietnam Trail Marathon"
+    write_outbox(tmp_path, "h2", other)
+    report = run(db, tmp_path)
+    assert report.duplicates == 1
+    (proposal,) = pending_proposals(db)
+    assert "also seen in: blog-b" in (proposal.reason or "")
+
+
+def test_better_source_replaces_a_weaker_pending_create(db: Session, tmp_path: Path) -> None:
+    weak = make_source(db, tier=3, source_id="blog")
+    official = make_source(db, tier=2, source_id="official")
+    make_document(db, weak, "h1")
+    make_document(db, official, "h2")
+    write_outbox(tmp_path, "h1", candidate())
+    run(db, tmp_path)
+    write_outbox(tmp_path, "h2", candidate())
+    report = run(db, tmp_path)
+    assert report.created == 1
+    statuses = sorted(p.status for p in db.scalars(select(ChangeProposal)))
+    assert statuses == ["auto_applied", "superseded"]
+    assert count(db, Event) == 1
+
+
+def test_approving_a_create_for_an_event_that_now_exists_is_superseded(
+    db: Session, tmp_path: Path
+) -> None:
+    blog = make_source(db, tier=3, source_id="blog")
+    make_document(db, blog, "h1")
+    write_outbox(tmp_path, "h1", candidate())
+    run(db, tmp_path)
+    (proposal,) = pending_proposals(db)
+    official = make_source(db, tier=2, source_id="official")
+    make_document(db, official, "h2")
+    write_outbox(tmp_path, "h2", candidate(name="Vietnam Trail Marathon 2027 "))
+    db.refresh(proposal)
+    event = Event(
+        slug="vietnam-trail-marathon-2027", name="Vietnam Trail Marathon 2027",
+        event_type="trail", start_date=date(2027, 1, 16),
+    )  # fmt: skip
+    db.add(event)
+    db.commit()
+    assert "superseded" in approve(db, proposal.id, actor="cli")
+    assert count(db, Event) == 1
+
+
+def test_omitted_evidence_keeps_the_value_but_forces_review(db: Session, tmp_path: Path) -> None:
+    source = make_source(db)
+    make_document(db, source, "h1")
+    cand = candidate()
+    for name in ("event_type", "province", "venue", "organizer", "distances"):
+        cand["fields"].pop(name)
+    write_outbox(tmp_path, "h1", cand)
+    report = run(db, tmp_path)
+    assert (report.created, report.pending) == (0, 1)
+    assert any("no quote for" in w for w in report.warnings)
+    value = pending_proposals(db)[0].new_value
+    assert value["province"] == "Sơn La" and value["event_type"] == "trail"
+
+
+def test_invented_evidence_on_a_descriptive_field_is_still_dropped(
+    db: Session, tmp_path: Path
+) -> None:
+    source = make_source(db, tier=3, source_id="blog")
+    make_document(db, source, "h1")
+    cand = candidate()
+    cand["fields"]["province"]["evidence"] = "Lâm Đồng, Đà Lạt"
+    write_outbox(tmp_path, "h1", cand)
+    run(db, tmp_path)
+    assert pending_proposals(db)[0].new_value["province"] is None
+
+
+def test_pending_filters(db: Session, tmp_path: Path) -> None:
+    blog = make_source(db, tier=3, source_id="blog")
+    other = make_source(db, tier=3, source_id="listing")
+    make_document(db, blog, "h1")
+    make_document(db, other, "h2", PAGE + "\nDalat Ultra Trail 2027\nLâm Đồng")
+    write_outbox(tmp_path, "h1", candidate())
+    other_event = candidate(name="Dalat Ultra Trail 2027", province="Lâm Đồng")
+    other_event["fields"]["name"]["evidence"] = "Dalat Ultra Trail 2027"
+    other_event["fields"]["province"]["evidence"] = "Lâm Đồng"
+    write_outbox(tmp_path, "h2", other_event)
+    run(db, tmp_path)
+    assert len(pending_proposals(db)) == 2
+    assert len(pending_proposals(db, source="blog")) == 1
+    assert len(pending_proposals(db, kind="update")) == 0
+    assert len(pending_proposals(db, min_confidence=0.99)) == 0
+
+
+def test_finished_events_are_not_added(db: Session, tmp_path: Path) -> None:
+    source = make_source(db)
+    page = PAGE.replace("16/01/2027", "16/01/2026")
+    make_document(db, source, "h1", page)
+    past = candidate(start_date="2026-01-16")
+    past["fields"]["start_date"]["evidence"] = "Ngày thi đấu: 16/01/2026"
+    write_outbox(tmp_path, "h1", past)
+    report = run(db, tmp_path)
+    assert report.created == 0 and report.pending == 0
+    assert any("already finished" in r for r in report.rejected)
+    assert count(db, Event) == 0

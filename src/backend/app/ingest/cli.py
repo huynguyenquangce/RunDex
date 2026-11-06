@@ -75,12 +75,24 @@ def _cmd_apply(_: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_review(_: argparse.Namespace) -> int:
+def _cmd_review(args: argparse.Namespace) -> int:
     with SessionLocal() as session:
-        proposals = pending_proposals(session)
+        proposals = pending_proposals(
+            session, source=args.source, kind=args.kind, min_confidence=args.min_confidence
+        )
         if not proposals:
             print("nothing to review")
-        for p in proposals:
+            return 0
+        if args.summary:
+            counts: dict[tuple[str, str, int], int] = {}
+            for p in proposals:
+                key = (p.source_id, p.kind, p.tier)
+                counts[key] = counts.get(key, 0) + 1
+            print(f"{len(proposals)} pending")
+            for (source_id, kind, tier), n in sorted(counts.items(), key=lambda kv: -kv[1]):
+                print(f"  {n:>4}  T{tier} {kind:<6} {source_id}")
+            return 0
+        for p in proposals[: args.limit]:
             name = event_name_for(session, p)
             print(f"#{p.id} [{p.kind}] T{p.tier} {name}  ({p.source_id}; conf={p.confidence})")
             print(f"    why queued: {p.reason}")
@@ -88,19 +100,34 @@ def _cmd_review(_: argparse.Namespace) -> int:
                 print(f"    {p.field}: {p.old_value!r} -> {p.new_value!r}")
             else:
                 n = p.new_value
-                print(
-                    f"    new: {n.get('start_date')} {n.get('province')} {n.get('event_type')}"
-                    f" distances={[d['label'] for d in n.get('distances', [])]}"
-                )
+                labels = [d["label"] for d in n.get("distances", [])]
+                summary = f"{n.get('start_date')} {n.get('province')} {n.get('event_type')}"
+                print(f"    new: {summary} {labels}")
             if p.evidence:
                 print(f"    evidence: {p.evidence[:160]!r}")
+        if len(proposals) > args.limit:
+            print(f"... {len(proposals) - args.limit} more (use --limit or filters)")
     return 0
 
 
 def _cmd_decide(args: argparse.Namespace) -> int:
     action = approve if args.command == "approve" else reject
     with SessionLocal() as session:
-        for proposal_id in args.ids:
+        ids = list(args.ids)
+        if args.all:
+            if not (args.source or args.kind or args.min_confidence is not None):
+                print("--all needs at least one filter: --source, --kind or --min-confidence")
+                return 2
+            ids += [
+                p.id
+                for p in pending_proposals(
+                    session, source=args.source, kind=args.kind, min_confidence=args.min_confidence
+                )
+            ]
+        if not ids:
+            print("no ids given")
+            return 2
+        for proposal_id in ids:
             print(action(session, proposal_id, actor="cli"))
     return 0
 
@@ -127,13 +154,23 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("apply", help="process data/outbox into the catalog").set_defaults(
         func=_cmd_apply
     )
-    commands.add_parser("review", help="list proposals waiting for a decision").set_defaults(
-        func=_cmd_review
-    )
+    review = commands.add_parser("review", help="list proposals waiting for a decision")
+    review.add_argument("--summary", action="store_true", help="counts by source and kind only")
+    review.add_argument("--limit", type=int, default=20)
+    review.set_defaults(func=_cmd_review)
+    decide_parsers = []
     for name in ("approve", "reject"):
-        decide_cmd = commands.add_parser(name, help=f"{name} proposals by id")
-        decide_cmd.add_argument("ids", nargs="+", type=int)
+        decide_cmd = commands.add_parser(name, help=f"{name} proposals by id or by filter")
+        decide_cmd.add_argument("ids", nargs="*", type=int)
+        decide_cmd.add_argument(
+            "--all", action="store_true", help="every pending proposal matching the filters"
+        )
         decide_cmd.set_defaults(func=_cmd_decide)
+        decide_parsers.append(decide_cmd)
+    for p in (review, *decide_parsers):
+        p.add_argument("--source", help="only this source id")
+        p.add_argument("--kind", choices=["create", "update"])
+        p.add_argument("--min-confidence", type=float)
     return parser
 
 

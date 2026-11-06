@@ -4,6 +4,7 @@ diff, decide by tier, apply or queue for review."""
 import shutil
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +17,7 @@ from app.ingest.apply import apply_proposal, unique_slug
 from app.ingest.changes import Change, decide, diff_event, jsonable
 from app.ingest.extract import EventCandidate, Extraction, VerifiedCandidate, verify_candidate
 from app.ingest.match import find_match
-from app.ingest.normalize import EventData, normalize
+from app.ingest.normalize import EventData, fold, normalize
 from app.ingest.validate import validate
 from app.models import ChangeProposal, Event, RawDocument, Source
 
@@ -56,6 +57,36 @@ def _pending_exists(
     return any(p.new_value == new_value for p in session.scalars(query))
 
 
+SIMILAR_NAME = 0.8
+
+
+def _similar_pending_create(session: Session, data: EventData) -> ChangeProposal | None:
+    """A pending "create" for the same event, e.g. listed by another source."""
+    creates = session.scalars(
+        select(ChangeProposal).where(
+            ChangeProposal.status == "pending", ChangeProposal.kind == "create"
+        )
+    )
+    for proposal in creates:
+        other = proposal.new_value
+        if other["slug"] == data.slug:
+            return proposal
+        days = abs((date.fromisoformat(other["start_date"]) - data.start_date).days)
+        names = SequenceMatcher(None, fold(other["name"]), fold(data.name)).ratio()
+        if days <= 2 and names >= SIMILAR_NAME:
+            return proposal
+    return None
+
+
+def _note_corroboration(proposal: ChangeProposal, source_id: str) -> None:
+    reason = proposal.reason or ""
+    if source_id in reason or source_id == proposal.source_id:
+        return
+    proposal.reason = (reason + (" | also seen in: " if "also seen in" not in reason else ", ")) + (
+        source_id
+    )
+
+
 def _evidence_for(candidate: EventCandidate, name: str) -> str | None:
     evidence = candidate.fields.get(name)
     return evidence.evidence if evidence else None
@@ -78,23 +109,42 @@ def _handle_candidate(
         return
     if verified.dropped:
         report.warnings.append(f"{label}: dropped unverified fields {', '.join(verified.dropped)}")
+    if verified.unverified:
+        report.warnings.append(
+            f"{label}: no quote for {', '.join(verified.unverified)} (kept, needs review)"
+        )
+    if verified.inferred:
+        report.warnings.append(
+            f"{label}: year not stated in the quote for {', '.join(verified.inferred)} "
+            "(needs review)"
+        )
     data: EventData = normalize(verified)
     validation = validate(data, source, today)
     if validation.blocking:
         report.rejected.append(f"{label}: " + "; ".join(validation.blocking))
         return
     data = validation.data
-    has_issues = bool(validation.warnings or verified.dropped)
+    has_issues = bool(
+        validation.warnings or verified.dropped or verified.inferred or verified.unverified
+    )
     for warning in validation.warnings:
         report.warnings.append(f"{label}: {warning}")
 
     match = find_match(session, data)
     if match is None:
+        if (data.end_date or data.start_date) < today:
+            report.rejected.append(f"{label}: already finished, not tracked")
+            return
         payload = jsonable(data.model_dump())
         payload["slug"] = unique_slug(session, data.slug)
-        if _pending_exists(session, "create", None, None, payload):
-            report.duplicates += 1
-            return
+        similar = _similar_pending_create(session, data)
+        if similar is not None:
+            if source.tier < similar.tier:  # a better source replaces a weaker pending proposal
+                similar.status = "superseded"
+            else:
+                _note_corroboration(similar, source.id)
+                report.duplicates += 1
+                return
         status, reason = decide(
             "create", None, source.tier, verified.creation_confidence, threshold, has_issues
         )
@@ -197,9 +247,8 @@ def process_outbox(
         done = outbox / "done"
         done.mkdir(exist_ok=True)
         shutil.move(str(path), str(done / path.name))
-        inbox_file = data_dir / "inbox" / path.name
-        if inbox_file.exists():
-            inbox_file.unlink()
+        for leftover in (data_dir / "inbox").glob(f"{path.stem}.*"):
+            leftover.unlink()
     return report
 
 
@@ -209,6 +258,12 @@ def approve(session: Session, proposal_id: int, actor: str, now: datetime | None
         return f"{proposal_id}: not found"
     if proposal.status != "pending":
         return f"{proposal_id}: already {proposal.status}"
+    if proposal.kind == "create":
+        existing = find_match(session, EventData.model_validate(proposal.new_value))
+        if existing is not None:
+            proposal.status = "superseded"
+            session.commit()
+            return f"{proposal_id}: superseded (already in the catalog as {existing.slug})"
     event = apply_proposal(session, proposal, actor, "approved", now)
     if event is None:
         proposal.status = "superseded"
@@ -231,14 +286,25 @@ def reject(session: Session, proposal_id: int, actor: str, now: datetime | None 
     return f"{proposal_id}: rejected"
 
 
-def pending_proposals(session: Session) -> list[ChangeProposal]:
-    return list(
-        session.scalars(
-            select(ChangeProposal)
-            .where(ChangeProposal.status == "pending")
-            .order_by(ChangeProposal.id)
-        )
-    )
+def pending_proposals(
+    session: Session,
+    source: str | None = None,
+    kind: str | None = None,
+    min_confidence: float | None = None,
+) -> list[ChangeProposal]:
+    query = select(ChangeProposal).where(ChangeProposal.status == "pending")
+    if source:
+        query = query.where(ChangeProposal.source_id == source)
+    if kind:
+        query = query.where(ChangeProposal.kind == kind)
+    proposals = list(session.scalars(query.order_by(ChangeProposal.id)))
+    if min_confidence is not None:
+        proposals = [
+            p
+            for p in proposals
+            if p.confidence is not None and float(p.confidence) >= min_confidence
+        ]
+    return proposals
 
 
 def event_name_for(session: Session, proposal: ChangeProposal) -> str:
