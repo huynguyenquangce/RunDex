@@ -101,7 +101,7 @@ Downloads event pages from the registered sources and builds the catalog. The AI
    alembic upgrade head
    python -m app.ingest run --limit 6
    ```
-   It registers the sources and downloads pages into `src/backend/data/inbox` (polite: it respects `robots.txt` and waits between requests). Pages of `pace8` (structured data) skip the AI step: they are read by rules and go straight to the outbox, so step 3 only needs the agent for the other sources. Try it alone: `python -m app.ingest run --source pace8 --limit 5` then `python -m app.ingest apply`.
+   It registers the sources and downloads pages into `src/backend/data/inbox` (polite: it respects `robots.txt` and waits between requests). Pages of `pace8` (structured data) skip the AI step: they are read by rules and go straight to the outbox, so step 3 only needs the agent for the other sources. Try it alone: `python -m app.ingest fetch --source pace8 --limit 5` then `python -m app.ingest apply`.
 3. **Extraction (AI step).** Open Claude Code in `~/RunDex` and ask:
    > Run the event-extractor agent on the pages in src/backend/data/inbox.
 
