@@ -22,6 +22,8 @@ class SourceConfig(BaseModel):
     url_include: str | None = None
     enabled: bool = True
     refresh_days: int = Field(default=7, gt=0)
+    # "jsonld": read schema.org Event data by rules (no AI); pages without it fall back to "ai".
+    extractor: Literal["ai", "jsonld"] = "ai"
     notes: str | None = None
 
     @field_validator("url_include")
@@ -59,6 +61,7 @@ def sync_sources(session: Session, configs: list[SourceConfig]) -> tuple[int, in
         source.url_include = config.url_include
         source.enabled = config.enabled
         source.refresh_days = config.refresh_days
+        source.extractor = config.extractor
         source.notes = config.notes
     session.commit()
     return created, updated

@@ -121,12 +121,15 @@ sources:
     refresh_days: 14
     notes: robots.txt not checked yet.
 
-  - id: pace8-vtm
-    name: Pace8 - Vietnam Trail Marathon 2027
-    kind: event_page
-    url: https://pace8.vn/su-kien/vietnam-trail-marathon-2027
-    tier: 3
-    refresh_days: 14
+  - id: pace8
+    name: Pace8 - ticketing portal (schema.org Event with prices per distance)
+    kind: sitemap
+    url: https://pace8.vn/sitemap.xml
+    url_include: "^https://pace8\\.vn/su-kien/[a-z0-9-]+/?$"
+    tier: 2
+    extractor: jsonld
+    refresh_days: 3
+    notes: Ticket seller, not the organizer. Read by rules from JSON-LD (docs/DATA-SOURCES.md).
 
   - id: asiatrailmaster-news
     name: Asia Trail Master - VTM news

@@ -53,4 +53,4 @@ The AI only extracts and quotes evidence; deterministic checks decide validity; 
 | Ingestion | Scheduled worker, LLM behind an adapter with replay mode | planned |
 | Design | Figma file (colour variables, event card component), tokens mirrored in `src/theme` | built |
 
-Decisions: see `docs/adr/` (0001-0006) and `docs/DESIGN-DECISIONS.md`.
+Decisions: see `docs/adr/` (0001-0007) and `docs/DESIGN-DECISIONS.md`.

@@ -133,6 +133,7 @@ class Source(Base):
     url_include: Mapped[str | None] = mapped_column(Text)
     enabled: Mapped[bool] = mapped_column(Boolean, server_default="true")
     refresh_days: Mapped[int] = mapped_column(Integer, server_default="7")
+    extractor: Mapped[str] = mapped_column(String(10), server_default="ai")
     notes: Mapped[str | None] = mapped_column(Text)
     last_fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

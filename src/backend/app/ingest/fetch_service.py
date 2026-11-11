@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.ingest.discover import discover_urls
 from app.ingest.fetcher import Fetcher
+from app.ingest.jsonld import extract_jsonld
 from app.models import RawDocument, Source
 
 
@@ -75,6 +76,17 @@ def _write_inbox(data_dir: Path, document: RawDocument) -> Path:
     return inbox_file
 
 
+def _write_outbox(data_dir: Path, document: RawDocument) -> bool:
+    """Extract by rules straight into the outbox; False when the page has no usable event."""
+    extraction = extract_jsonld(document.text, document.content_hash, document.url)
+    if extraction is None:
+        return False
+    outbox_file = data_dir / "outbox" / f"{document.content_hash}.json"
+    outbox_file.parent.mkdir(parents=True, exist_ok=True)
+    outbox_file.write_text(extraction.model_dump_json(indent=2), encoding="utf-8")
+    return True
+
+
 def pages_waiting_for_extraction(data_dir: Path | None = None) -> list[str]:
     """Hashes of fetched pages that have no extractor result yet."""
     data_dir = data_dir or settings.ingest_data_dir
@@ -133,7 +145,8 @@ def fetch_source(
         )
         session.add(document)
         session.flush()
-        _write_inbox(data_dir, document)
+        if not (source.extractor == "jsonld" and _write_outbox(data_dir, document)):
+            _write_inbox(data_dir, document)
         report.new_or_changed += 1
     source.last_fetched_at = now
     session.commit()

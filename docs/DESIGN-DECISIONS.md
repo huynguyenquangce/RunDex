@@ -10,6 +10,7 @@ Summarize the most important decisions here; detail goes in [`adr/`](adr/).
 | 4 | Event/Distance model with provenance, change proposals, audit log | Flat event row; full event sourcing | Per-distance data, traceable values | [0004](adr/0004-data-model.md) |
 | 5 | PostgreSQL from day one; mobile-first (iOS + Android), web later; Expo confirmed | SQLite first; Flutter; native x2; web-first | Owner priority; Postgres fits jobs and unaccent search; one codebase for both stores | [0005](adr/0005-postgres-and-mobile-first.md) |
 | 6 | Monorepo on GitHub, FastAPI/SQLAlchemy, Expo + TanStack Query, generated API types, GitHub Actions CI; EAS deferred | Separate repos; hand-written client types | One clone runs everything; contract drift caught in CI | [0006](adr/0006-engineering-stack-and-ci.md) |
+| 7 | Sources with schema.org JSON-LD (pace8) are read by rules, not an LLM; pace8 is tier 2 | LLM extraction; tier 1 | No invented values, fees per distance, sold-out state | [0007](adr/0007-rule-based-extraction-for-structured-sources.md) |
 
 ## Trade-offs and known limitations
 _TBD_
