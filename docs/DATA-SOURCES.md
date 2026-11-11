@@ -45,6 +45,18 @@ Conclusions and policy for RunDex:
 - Respect robots.txt, identify the crawler with an honest User-Agent, rate-limit politely, cache raw pages.
 - For the MVP, seed data is curated manually from public pages; automated adapters are enabled per source only after its terms are read (and, where unclear, after asking the organizer).
 
+## pace8.vn (evaluated 2026-11-11)
+Ticketing and registration portal of PaceX Viet Nam JSC ("cổng thông tin các giải chạy", also e-waiver and racekit check-in). Checked by hand: robots.txt, sitemap, the event listing, and one event page (Vietnam Trail Marathon 2027). Five polite requests, honest User-Agent.
+
+- **robots.txt:** allows everything except `/users/`, `/portal/`, `/crons/`, `/scripts/`, `/frames/`; no crawl-delay; points to `https://pace8.vn/sitemap.xml`.
+- **Terms:** `/dieu-khoan-su-dung.html` exists but its text could not be retrieved by our fetch; no reuse clause seen; footer "©2026 CÔNG TY CỔ PHẦN PACEX VIỆT NAM". Same stance as the other sources: facts only, cite the source, link to the registration page.
+- **Coverage:** the sitemap lists 439 URLs, about 197 single event pages, all with `lastmod` (recent months: Oct 2026 17, Nov 2026 11). The `/su-kien` listing shows ROAD 23, TRAIL 8, TRIATHLON 1 (about 32 events currently on sale; the page also says "100+"). It only covers events sold through pace8 (e.g. Vietnam Trail Marathon, Dalat Ultra Trail, Mang Den LaLa Trail, Cuc Phuong Jungle Paths, HCMC Marathon 2027, Can Tho Heritage, Tet Run), not every event in Vietnam.
+- **The listing cards are not in the static HTML** (no event links in the downloaded page), so discovery should use the sitemap, not the listing.
+- **Structured data:** every event page carries a schema.org `Event` block (JSON-LD) with `name`, `startDate`, `endDate` (ISO with +07:00), `eventStatus`, `location` (text such as "Mộc Châu, Sơn La"), `organizer` (name and pace8 organizer page), and `offers`: one per distance with `name` (e.g. "21Km"), `price` (VND), `availability` (InStock / SoldOut), `validFrom`, `url`. Example: VTM 2027 lists 5 Km trẻ em 1,000,000; 5 Km 1,700,000; 10 Km 1,900,000; 21 Km 3,300,000; 50 Km 4,100,000; 70 Km 4,400,000; all SoldOut.
+- **Not on the page:** start time per distance, elevation, cut-off, registration deadline (`validThrough` is empty), slots. The ticket link is the pace8 event page itself, and the button shows "Hết vé" when sold out.
+- **Why it matters:** the data is machine-readable, so it can be parsed by rules instead of an LLM (no extraction step, no invented values), and it fills the fees and sold-out state that the blog sources lack. Proposed: sitemap source filtered to `/su-kien/<slug>`, a JSON-LD extractor feeding the normal verify, validate, diff, tier path, `SoldOut` on every offer mapped to `registration_closed`. Tier to decide (ticketing platform, not the organizer: tier 1 auto-apply, or tier 2 so date changes are reviewed).
+- Caveats: slugs can redirect (`/su-kien/hcmc-marathon-2027` answered 301), the sitemap contains past events and non-event pages (`ket-thuc-dang-ky`, `flash-sale`, group registration pages), and prices are for the pace8 sales channel.
+
 ## Observed data conflicts (why review matters)
 - Vietnam Trail Marathon 2027: 16/01 on one source vs 15–16/01 on another; Ahotu showed registration not open while the organizer said open.
 - HCMC Marathon 2027 (17/01): third-party listing gave a registration close date (2026-12-09) while the official site only showed "updates coming".
