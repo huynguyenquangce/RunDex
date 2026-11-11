@@ -96,3 +96,17 @@ describe('<EventDetailView />', () => {
     expect(screen.queryByLabelText('Đăng ký trên trang ban tổ chức')).toBeNull();
   });
 });
+
+describe('about-data link', () => {
+  it('opens the data explanation when the screen provides it', async () => {
+    const onOpenAbout = jest.fn();
+    await render(<EventDetailView event={EVENT} onOpenUrl={jest.fn()} onOpenAbout={onOpenAbout} />);
+    fireEvent.press(screen.getByRole('link', { name: /Về dữ liệu/ }));
+    expect(onOpenAbout).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows no link without the handler', async () => {
+    await render(<EventDetailView event={EVENT} onOpenUrl={jest.fn()} />);
+    expect(screen.queryByText(/Về dữ liệu/)).toBeNull();
+  });
+});

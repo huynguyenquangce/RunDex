@@ -21,6 +21,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="about-data" options={{ title: 'Về dữ liệu', headerBackTitle: 'Giải chạy' }} />
         <Stack.Screen name="event/[slug]" options={{ title: 'Chi tiết giải', headerBackTitle: 'Giải chạy' }} />
       </Stack>
     </PersistQueryClientProvider>

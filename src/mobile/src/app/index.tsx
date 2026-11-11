@@ -2,15 +2,17 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type EventFilters, countQuery, eventsQuery } from '@/api/events';
 import { EventCard } from '@/components/EventCard';
+import { Icon } from '@/components/Icon';
 import { FilterButton } from '@/components/FilterButton';
 import { FilterChip } from '@/components/FilterChip';
 import { Message, OfflineBanner, SkeletonCards } from '@/components/ListStates';
 import { SearchField } from '@/components/SearchField';
+import { withMonthHeaders } from '@/features/events/rows';
 import { FilterSheet } from '@/features/events/FilterSheet';
 import { CHIPS, activeFilterCount, hasChipFilters, isChipActive, toggleChip } from '@/features/events/filters';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -30,6 +32,7 @@ export default function EventListScreen() {
 
   const query = useInfiniteQuery({ ...eventsQuery(filters), placeholderData: keepPreviousData });
   const items = query.data?.pages.flatMap((page) => page.items) ?? [];
+  const rows = useMemo(() => withMonthHeaders(items), [items]);
   const hasFilters = Boolean(q.trim()) || hasChipFilters(chipFilters);
   const draftCount = useQuery({ ...countQuery({ ...draft, q }), enabled: sheetOpen, placeholderData: keepPreviousData });
   const offline = netInfo.isConnected === false;
@@ -39,6 +42,18 @@ export default function EventListScreen() {
     setChipFilters({});
   };
 
+  const aboutButton = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Về dữ liệu"
+      hitSlop={10}
+      onPress={() => router.push('/about-data')}
+      style={styles.aboutButton}
+    >
+      <Icon name="info" size={22} />
+    </Pressable>
+  );
+
   const header = (
     <View>
       {Platform.OS === 'ios' ? (
@@ -47,12 +62,14 @@ export default function EventListScreen() {
             Giải chạy
           </Text>
           <Text style={styles.subtitle}>Tất cả giải chạy tại Việt Nam</Text>
+          {aboutButton}
         </View>
       ) : (
         <View style={styles.appBar}>
           <Text accessibilityRole="header" style={styles.titleAndroid}>
             RunDex
           </Text>
+          {aboutButton}
         </View>
       )}
       <View style={styles.searchRow}>
@@ -129,12 +146,11 @@ export default function EventListScreen() {
         }}
       />
       <FlatList
-        data={items}
-        keyExtractor={(item) => item.slug}
+        data={rows}
+        keyExtractor={(row) => row.key}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.xl }]}
-        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
         ListHeaderComponent={header}
         ListEmptyComponent={empty}
         onEndReached={() => {
@@ -144,14 +160,20 @@ export default function EventListScreen() {
         refreshControl={
           <RefreshControl refreshing={query.isRefetching && !query.isFetchingNextPage} onRefresh={() => void query.refetch()} />
         }
-        renderItem={({ item }) => (
-          <View style={styles.cardWrap}>
-            <EventCard
-              event={item}
-              onPress={() => router.push({ pathname: '/event/[slug]', params: { slug: item.slug } })}
-            />
-          </View>
-        )}
+        renderItem={({ item }) =>
+          item.kind === 'month' ? (
+            <Text accessibilityRole="header" style={styles.monthHeader}>
+              {item.label}
+            </Text>
+          ) : (
+            <View style={styles.cardWrap}>
+              <EventCard
+                event={item.event}
+                onPress={() => router.push({ pathname: '/event/[slug]', params: { slug: item.event.slug } })}
+              />
+            </View>
+          )
+        }
       />
     </View>
   );
@@ -166,6 +188,7 @@ const styles = StyleSheet.create({
   appBar: { height: 64, justifyContent: 'center', paddingHorizontal: spacing.lg },
   titleAndroid: { color: colors.ink, fontSize: fontSize.title + 2, fontWeight: '500' },
   flex: { flex: 1 },
+  aboutButton: { position: 'absolute', right: spacing.lg, top: Platform.OS === 'ios' ? spacing.md : 21 },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -183,5 +206,13 @@ const styles = StyleSheet.create({
   },
   listHeaderLeft: { color: colors.muted, fontSize: fontSize.small, fontWeight: '600' },
   listHeaderRight: { color: colors.primary, fontSize: fontSize.small, fontWeight: '500' },
-  cardWrap: { paddingHorizontal: spacing.lg },
+  cardWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  monthHeader: {
+    color: colors.ink,
+    fontSize: fontSize.body,
+    fontWeight: '700',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
 });

@@ -64,6 +64,19 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--primary); ou
 .listhead { display:flex; justify-content:space-between; padding:0 16px 8px; font-size:13px; }
 .listhead .l { color:var(--muted); font-weight:600; }
 .listhead .r { color:var(--primary); font-weight:500; }
+.monthhead { margin:12px 0 -4px; font-size:15px; font-weight:700; color:var(--ink); }
+.aboutbtn { position:absolute; right:16px; top:21px; width:22px; height:22px; display:flex; }
+.ios .aboutbtn { top:12px; }
+.largetitle, .appbar { position:relative; }
+.about { padding:16px; display:grid; gap:12px; }
+.about h1 { margin:0; font-size:28px; font-weight:700; }
+.about .lead { margin:0 0 4px; color:var(--muted); font-size:15px; }
+.acard { display:flex; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; }
+.acard .iw { width:36px; height:36px; flex:none; border-radius:12px; background:var(--primary-soft); display:flex; align-items:center; justify-content:center; }
+.acard .at { flex:1; min-width:0; display:grid; gap:4px; align-content:start; }
+.acard h3 { margin:0; font-size:15px; font-weight:600; }
+.acard p { margin:0; color:var(--muted); font-size:13px; line-height:20px; }
+.aboutlink { color:var(--primary); font-weight:600; }
 .cards { display:grid; gap:12px; padding:0 16px 40px; }
 
 /* event card */
@@ -262,6 +275,17 @@ function toggleChip(f, id) {
   if (id === '21' || id === '42') return toggleDistance(f, id);
   return setRegion(f, on ? undefined : 'north');
 }
+/** "2027-01-16" -> "Tháng 1 · 2027" (mirrors features/events/rows.ts) */
+function monthHeading(iso) { const [y, m] = iso.split('-'); return `Tháng ${Number(m)} · ${y}`; }
+function withMonthHeaders(events) {
+  const rows = []; let current = '';
+  for (const e of events) {
+    const m = e.start_date.slice(0, 7);
+    if (m !== current) { current = m; rows.push({ kind: 'month', key: 'month-' + m, label: monthHeading(e.start_date) }); }
+    rows.push({ kind: 'event', key: e.slug, event: e });
+  }
+  return rows;
+}
 // ===== PURE:END =======================================================================================
 if (typeof document !== 'undefined' && document.getElementById('phone')) {
 const ICON = {
@@ -295,12 +319,13 @@ const message = (title, body, action) => `<div class="message"><h3>${title}</h3>
 
 function listShell() {
   const ios = S.platform === 'ios';
+  const aboutBtn = `<button class="aboutbtn" data-act="about" aria-label="Về dữ liệu">${icon('info', 22)}</button>`;
   phone.className = 'phone ' + S.platform;
   phone.innerHTML = `<div class="statusbar"><span>${ios ? '9:41' : '9:30'}</span><span class="right">5G <span class="bat"></span></span></div>
   <div class="screen" id="screen">
     ${S.offline ? `<div class="offline" role="alert">${icon('cloudOff', 16, '#fff')}Ngoại tuyến · hiển thị dữ liệu đã lưu trên máy</div>` : ''}
     <div class="scroll" id="scroll">
-      ${ios ? `<div class="largetitle"><h2>Giải chạy</h2><p>Tất cả giải chạy tại Việt Nam</p></div>` : `<div class="appbar"><h2>RunDex</h2></div>`}
+      ${ios ? `<div class="largetitle"><h2>Giải chạy</h2><p>Tất cả giải chạy tại Việt Nam</p>${aboutBtn}</div>` : `<div class="appbar"><h2>RunDex</h2>${aboutBtn}</div>`}
       <div class="searchrow"><label class="search">${icon('search', 18)}<input id="q" type="search" placeholder="Tìm giải, địa điểm" aria-label="Tìm giải chạy" autocomplete="off" value="${esc(S.text)}"></label>
         <button class="filterbtn" id="fbtn" data-act="sheet" aria-label="Bộ lọc">${icon('filter', 20, 'var(--ink)')}<span id="fbadge"></span></button></div>
       <div class="chips" id="chips" role="group" aria-label="Lọc nhanh"></div>
@@ -337,7 +362,7 @@ function renderList() {
     cards.innerHTML = message('Không có giải nào khớp', has ? 'Thử bỏ bớt bộ lọc hoặc đổi từ khóa.' : 'Chưa có giải nào sắp diễn ra.', has ? ['clearall', 'Xóa bộ lọc'] : null);
     return;
   }
-  cards.innerHTML = all.slice(0, S.shown).map(card).join('');
+  cards.innerHTML = withMonthHeaders(all.slice(0, S.shown)).map(r => r.kind === 'month' ? `<div class="monthhead" role="heading" aria-level="2">${esc(r.label)}</div>` : card(r.event)).join('');
 }
 function renderSheet() {
   const f = S.draft, t = activeTime(f), n = applyFilters({ ...f, q: S.text }).length;
@@ -376,18 +401,33 @@ function detailView(e) {
     ${e.organizer ? `<div class="row">${icon('info')}<div class="tx"><b>Ban tổ chức: ${esc(e.organizer)}</b></div></div>` : ''}
     ${dl ? `<div class="deadline">${icon('clock', 20, 'var(--primary)')}<div><b>${esc(dl.title)}</b><span>${esc(dl.sub)}</span></div></div>` : ''}
     ${e.distances.length ? `<div class="sec"><h3>Cự ly</h3>${e.distances.map(d => { const x = distanceDetails(d); return `<div class="dist"><span class="lab">${esc(d.label)}</span><div>${x.primary ? `<div class="p">${esc(x.primary)}</div>` : ''}${x.secondary ? `<div class="s">${esc(x.secondary)}</div>` : ''}${!x.primary && !x.secondary ? '<div class="s">Chưa có thông tin chi tiết</div>' : ''}</div></div>`; }).join('')}</div>` : ''}
-    <div class="source">${icon('info', 16)}<span>${e.source_name ? `Nguồn: ${esc(e.source_name)}. ` : ''}${verified} Thông tin có thể thay đổi, hãy xác nhận trên trang ban tổ chức.</span></div>
+    <div class="source">${icon('info', 16)}<span>${e.source_name ? `Nguồn: ${esc(e.source_name)}. ` : ''}${verified} Thông tin có thể thay đổi, hãy xác nhận trên trang ban tổ chức. <button class="aboutlink" data-act="about">Về dữ liệu</button></span></div>
   </div></div>
   ${show && target ? `<div class="bottom"><a class="cta ${canReg ? '' : 'secondary'}" href="${esc(target)}" target="_blank" rel="noopener noreferrer">${canReg ? 'Đăng ký trên trang ban tổ chức' : reg ? 'Xem trang ban tổ chức' : 'Xem trang nguồn'}${icon('external', 18, canReg ? '#fff' : 'var(--primary)')}</a><div class="caption">${reg ? 'Mở trang của ban tổ chức trong trình duyệt' : 'Mở trang nguồn trong trình duyệt'}</div></div>` : ''}
   </div><div class="homebar"></div>`;
 }
-function render() { if (S.screen === 'detail') detailView(EVENTS.find(e => e.slug === S.slug)); else { listShell(); renderSheet(); } }
+const ABOUT = [
+  ['search', 'Dữ liệu đến từ đâu', 'Trang chính thức của ban tổ chức, cổng đăng ký và bán vé (ví dụ pace8.vn), và một số trang tin chạy bộ để phát hiện giải mới. RunDex chỉ lấy dữ kiện (tên, ngày, địa điểm, cự ly, phí) và dẫn bạn về trang đăng ký của ban tổ chức. Không sao chép mô tả hay hình ảnh.'],
+  ['clock', 'Cập nhật thế nào', 'Hệ thống tự kiểm tra các nguồn theo lịch và tìm giải mới. Thay đổi quan trọng như ngày, địa điểm, trạng thái hoặc liên kết đăng ký luôn được một người xem lại trước khi hiển thị.'],
+  ['calendar', '"Kiểm tra lần cuối" nghĩa là gì', 'Lần gần nhất thông tin của giải được đối chiếu với nguồn đáng tin cậy hoặc được người quản trị xác nhận. Nếu chưa có ngày này, giải mới chỉ thấy ở nguồn tham khảo và chưa được kiểm chứng.'],
+  ['external', 'Luôn xác nhận với ban tổ chức', 'Giờ xuất phát, thời gian cắt, phí và hạn đăng ký có thể đổi. Trước khi đăng ký, hãy kiểm tra lại trên trang của ban tổ chức. Nếu bạn là ban tổ chức và muốn gỡ hoặc sửa thông tin, hãy liên hệ để chúng tôi xử lý.'],
+];
+function aboutView() {
+  const ios = S.platform === 'ios';
+  phone.className = 'phone ' + S.platform;
+  phone.innerHTML = `<div class="statusbar"><span>${ios ? '9:41' : '9:30'}</span><span class="right">5G <span class="bat"></span></span></div>
+  <div class="screen"><div class="detailbar"><button class="back" data-act="back" aria-label="Quay lại danh sách">${icon('back', 24, 'currentColor')}${ios ? S.from === 'detail' ? 'Chi tiết giải' : 'Giải chạy' : ''}</button>${ios ? '' : '<span class="ttl">Về dữ liệu</span>'}</div>
+  <div class="scroll"><div class="about"><h1>Về dữ liệu</h1><p class="lead">RunDex là công cụ tra cứu. Việc đăng ký diễn ra trên trang của ban tổ chức.</p>
+  ${ABOUT.map(([i, t, b]) => `<div class="acard"><div class="iw">${icon(i, 20, 'var(--primary)')}</div><div class="at"><h3>${esc(t)}</h3><p>${esc(b)}</p></div></div>`).join('')}</div></div></div><div class="homebar"></div>`;
+}
+function render() { if (S.screen === 'about') aboutView(); else if (S.screen === 'detail') detailView(EVENTS.find(e => e.slug === S.slug)); else { listShell(); renderSheet(); } }
 
 phone.addEventListener('click', ev => {
   const el = ev.target.closest('[data-act]'); if (!el) return;
   const a = el.dataset.act, v = el.dataset.v;
   if (a === 'open') { S.screen = 'detail'; S.slug = el.dataset.slug; render(); }
-  else if (a === 'back') { S.screen = 'list'; render(); }
+  else if (a === 'about') { S.from = S.screen; S.screen = 'about'; render(); }
+  else if (a === 'back') { S.screen = S.screen === 'about' && S.from === 'detail' ? 'detail' : 'list'; render(); }
   else if (a === 'chip') { S.filters = toggleChip(S.filters, el.dataset.id); S.shown = PAGE; renderChips(); renderList(); renderBadge(); }
   else if (a === 'sheet') { S.draft = { ...S.filters }; S.sheet = true; renderSheet(); }
   else if (a === 'close') { S.sheet = false; renderSheet(); }
@@ -404,7 +444,7 @@ phone.addEventListener('click', ev => {
 document.querySelectorAll('input[name=platform]').forEach(r => r.addEventListener('change', () => { S.platform = r.value; render(); }));
 document.querySelectorAll('input[name=sim]').forEach(r => r.addEventListener('change', () => { S.sim = r.value; if (S.screen === 'list') renderList(); }));
 document.getElementById('offline').addEventListener('change', e => { S.offline = e.target.checked; if (S.screen === 'list') { render(); } });
-// Start state from the address, e.g. index.html#platform=android&screen=detail&slug=...&sheet=1&sim=error&offline=1&q=da%20lat
+// Start state from the address, e.g. index.html#platform=android&screen=detail&slug=... (or screen=about)&sheet=1&sim=error&offline=1&q=da%20lat
 const H = new URLSearchParams(location.hash.slice(1));
 if (H.get('static')) document.body.classList.add('static');
 if (H.get('platform') === 'android') { S.platform = 'android'; document.querySelector('input[name=platform][value=android]').checked = true; }
@@ -413,6 +453,7 @@ if (H.get('offline')) { S.offline = true; document.getElementById('offline').che
 if (H.get('q')) S.text = H.get('q');
 if (H.get('type')) S.filters = setType(S.filters, H.get('type'));
 if (H.get('screen') === 'detail' && EVENTS.some(e => e.slug === H.get('slug'))) { S.screen = 'detail'; S.slug = H.get('slug'); }
+if (H.get('screen') === 'about') { S.from = 'list'; S.screen = 'about'; }
 if (H.get('sheet')) { S.draft = { ...S.filters, ...(H.get('draftType') ? { type: H.get('draftType') } : {}), ...(H.get('draftRegion') ? { region: H.get('draftRegion') } : {}) }; S.sheet = true; }
 render();
 }

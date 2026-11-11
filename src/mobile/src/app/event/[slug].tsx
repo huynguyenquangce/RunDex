@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ import { colors, spacing } from '@/theme/tokens';
 export default function EventDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const query = useQuery(eventQuery(slug));
 
   const openUrl = (url: string) => {
@@ -23,7 +24,14 @@ export default function EventDetailScreen() {
   };
 
   if (query.data) {
-    return <EventDetailView event={query.data} bottomInset={insets.bottom} onOpenUrl={openUrl} />;
+    return (
+      <EventDetailView
+        event={query.data}
+        bottomInset={insets.bottom}
+        onOpenUrl={openUrl}
+        onOpenAbout={() => router.push('/about-data')}
+      />
+    );
   }
   if (query.isPending) {
     return (

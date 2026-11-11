@@ -19,6 +19,7 @@ interface Props {
   event: EventDetail;
   bottomInset?: number;
   onOpenUrl: (url: string) => void;
+  onOpenAbout?: () => void;
 }
 
 const NOTICES: Record<string, { text: string; bg: string; fg: string }> = {
@@ -31,7 +32,7 @@ const NOTICES: Record<string, { text: string; bg: string; fg: string }> = {
   completed: { text: 'Giải đã diễn ra.', bg: colors.bg, fg: colors.muted },
 };
 
-export function EventDetailView({ event, bottomInset = 0, onOpenUrl }: Props) {
+export function EventDetailView({ event, bottomInset = 0, onOpenUrl, onOpenAbout }: Props) {
   const status = statusBadge(event);
   const typeTone = event.event_type === 'trail' ? 'trail' : event.event_type === 'road' ? 'road' : 'muted';
   const startTimes = event.distances.map((d) => d.start_time).filter((t): t is string => Boolean(t)).sort();
@@ -114,6 +115,12 @@ export function EventDetailView({ event, bottomInset = 0, onOpenUrl }: Props) {
           <Text style={styles.sourceText}>
             {event.source_name ? `Nguồn: ${event.source_name}. ` : ''}
             {verifiedText} Thông tin có thể thay đổi, hãy xác nhận trên trang ban tổ chức.
+            {onOpenAbout ? (
+              <Text accessibilityRole="link" style={styles.aboutLink} onPress={onOpenAbout}>
+                {' '}
+                Về dữ liệu
+              </Text>
+            ) : null}
           </Text>
         </View>
       </ScrollView>
@@ -201,6 +208,7 @@ const styles = StyleSheet.create({
   distancePrimary: { color: colors.ink, fontSize: fontSize.small, fontWeight: '500' },
   distanceSecondary: { color: colors.muted, fontSize: fontSize.caption },
   source: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
+  aboutLink: { color: colors.primary, fontWeight: '600' },
   sourceText: { flex: 1, color: colors.muted, fontSize: fontSize.caption },
   bottom: {
     paddingHorizontal: spacing.lg,
